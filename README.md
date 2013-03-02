@@ -109,6 +109,14 @@ usually a conservative upper bound).  The arguments are:
   default `maxEval` is 0, in which case `maxEval` is ignored (no
   maximum).
 
+Here is an example that integrates f(x) = x^3 from 0 to 1, printing
+the x coordinates that are evaluated:
+
+    hquadrature(x -> begin println(x); x^3; end, 0,1, 1e-8)
+
+and returning `(0.25,2.7755575615628914e-15)`, which is the correct
+answer 0.25.
+
 ### Multi-dimensional integrals of real-valued integrands
 
 The next simplest case is to integrate a single real-valued integrand `f(x)`
@@ -135,6 +143,15 @@ usually a conservative upper bound).  The arguments are:
 
 * `reqRelError`, `reqAbsError`, and `maxEval` specify termination criteria
   as for `hquadrature` above.
+
+Here is the same 1d example as above, integrating f(x) = x^3 from 0 to 1
+while the x coordinates that are evaluated:
+
+    hcubature(x -> begin println(x[1]); x[1]^3; end, 0,1, 1e-8)
+
+which again returns the correct integral 0.25. The only difference from
+before is that the argument `x` of our integrand is now an array, so
+we must use `x[1]` to access its value.
 
 ### Integrals of vector-valued integrands
 
@@ -218,6 +235,14 @@ tuple of two vectors of length `fdim`: `val` (the estimated integrals
       the components integrate almost to zero).   We provide three
       different norms for completeness, but probably the choice of
       norm doesn't matter too much; pick `Cubature.L1` if you aren't sure.
+
+Here is an example, similar to above, which integrates a vector of
+three integrands (x, x^2, x^3) from 0 to 1:
+
+    hquadrature(3, (x,v) -> v[:] = x.^[1:3], 0,1, 1e-8)
+
+returning `([0.5, 0.333333, 0.25],[5.55112e-15, 3.70074e-15,
+2.77556e-15])`, which are of course the correct integrals.
 
 ### Parallelizing the integrand evaluation
 
