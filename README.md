@@ -26,8 +26,8 @@ more points until the integrand converges to a specified tolerance
 (with the error estimated by comparing integral estimates with
 different numbers of points).  The Cubature module implements two
 schemes for this adaptation: *h-adaptivity* (routines `hquadrature`,
-`hcubature`, `hquadrature_v, and `hcubature_v`) and *p-adaptivity*
-(routines `pquadrature`, `pcubature`, `pquadrature_v, and
+`hcubature`, `hquadrature_v`, and `hcubature_v`) and *p-adaptivity*
+(routines `pquadrature`, `pcubature`, `pquadrature_v`, and
 `pcubature_v`).  The h- and p-adaptive routines accept the same
 parameters, so you can use them interchangeably, but they have
 very different convergence characteristics.
