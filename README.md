@@ -73,7 +73,9 @@ from the Cubature module.
 The simplest case is to integrate a single real-valued integrand `f(x)`
 from `xmin` to `xmax`, in which case you can call:
 
-    (val,err) = hquadrature(f::Function, xmin::Real, xmax::Real, reqRelError::Real [, reqAbsError::Real = 0 [, maxEval::Integer = 0]])
+    (val,err) = hquadrature(f::Function, xmin::Real, xmax::Real,
+                            reqRelError::Real [, reqAbsError::Real = 0
+                            [, maxEval::Integer = 0]])
 
 for h-adaptive integration, or `pquadrature` (with the same arguments)
 for p-adaptive integration.  The return value is a tuple of `val` (the
@@ -113,7 +115,9 @@ The next simplest case is to integrate a single real-valued integrand `f(x)`
 over a [multidimensional box](http://en.wikipedia.org/wiki/Hyperrectangle),
 with each coordinate `x[i]` integrated from `xmin[i]` to `xmax[i]`.
 
-    (val,err) = hcubature(f::Function, xmin, xmax, reqRelError::Real [, reqAbsError::Real = 0 [, maxEval::Integer = 0]])
+    (val,err) = hcubature(f::Function, xmin, xmax, 
+                          reqRelError::Real [, reqAbsError::Real = 0
+                          [, maxEval::Integer = 0]])
 
 for h-adaptive integration, or `pcubature` (with the same arguments)
 for p-adaptive integration.  The return value is a tuple of `val` (the
@@ -150,8 +154,14 @@ at once for any given dimension `fdim` (the dimension of the
 *integrand*, which is independent of the dimensionality of the
 integration *domain*).   This is achieved by calling one of:
 
-    (val,err) = hquadrature(fdim::Integer, f::Function, xmin, xmax, reqRelError::Real [, reqAbsError::Real = 0 [, maxEval::Integer = 0 [, error_norm = Cubature.INDIVIDUAL]]])
-    (val,err) = hquadrature(fdim::Integer, f::Function, xmin, xmax, reqRelError::Real [, reqAbsError::Real = 0 [, maxEval::Integer = 0 [, error_norm = Cubature.INDIVIDUAL]]])
+    (val,err) = hquadrature(fdim::Integer, f::Function, xmin, xmax, 
+                            reqRelError::Real [, reqAbsError::Real = 0
+                            [, maxEval::Integer = 0
+                            [, error_norm = Cubature.INDIVIDUAL]]])
+    (val,err) = hquadrature(fdim::Integer, f::Function, xmin, xmax,
+                            reqRelError::Real [, reqAbsError::Real = 0
+                            [, maxEval::Integer = 0
+                            [, error_norm = Cubature.INDIVIDUAL]]])
 
 for h-adaptive integration, or `pquadrature`/`pcubature` (with the
 same arguments) for p-adaptive integration.  The return value is a
