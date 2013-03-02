@@ -36,7 +36,7 @@ very different convergence characteristics.
 integration domain into smaller and smaller regions, applying the same
 fixed-order (fixed number of points) integration rule within each
 sub-region and subdividing a region if its error estimate is too
-large.  (Technically, we use a Gauss-Lobatto rule in 1d and a
+large.  (Technically, we use a Gauss-Kronrod rule in 1d and a
 Genz-Malik rule in higher dimensions.)  This is well-suited for
 functions that have localized sharp features (peaks, kinks, etcetera)
 in a portion of the domain, because it will adaptively add more points
