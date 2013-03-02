@@ -302,7 +302,7 @@ Scientific Library](http://www.gnu.org/software/gsl/), both of which
 are free software under the GNU GPL.  (Another free-software
 multi-dimensional integration library, unrelated to our code here but
 also implementing the Genz-Malik algorithm among other techniques, is
-[Cuba](http://www.feynarts.de/cuba/).
+[Cuba](http://www.feynarts.de/cuba/).)
 
 The `hcubature_v` technique is adapted from adapted from I. Gladwell,
 "Vectorization of one dimensional quadrature codes," pp. 230--238 in
