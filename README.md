@@ -215,12 +215,13 @@ tuple of two vectors of length `fdim`: `val` (the estimated integrals
       it checks `err[i]` &le; `reqRelError`*|`val[i]`| or `err[i]` &le;
       `reqAbsError`, and only stops when one of these is true for *all* `i`.
 
-    * `Cubature.PAIRED`.  This is like `Cubature.INDIVIDUAL`, but applies
-      the convergence criteria to *consecutive pairs* of integrands, as
-      if these integrands are real and imaginary parts of complex numbers.
-      (This is mainly useful for integrating complex functions, where you
-       only care about error in the complex plane as opposed to error in
-       the real and imaginary parts taken individually.)
+    * `Cubature.PAIRED`.  This is like `Cubature.INDIVIDUAL`, but
+      applies the convergence criteria to *consecutive pairs* of
+      integrands, as if these integrands were real and imaginary parts
+      of complex numbers.  (This is mainly useful for integrating
+      complex functions in cases where you only care about error in
+      the complex plane as opposed to error in the real and imaginary
+      parts taken individually.)
 
     * `Cubature.L1`, `Cubature.L2`, or `Cubature.LINF`.  These
       terminate the integration when |`err`| &le;
