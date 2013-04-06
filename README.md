@@ -175,10 +175,10 @@ integration *domain*).   This is achieved by calling one of:
                             reqRelError::Real [, reqAbsError::Real = 0
                             [, maxEval::Integer = 0
                             [, error_norm = Cubature.INDIVIDUAL]]])
-    (val,err) = hquadrature(fdim::Integer, f::Function, xmin, xmax,
-                            reqRelError::Real [, reqAbsError::Real = 0
-                            [, maxEval::Integer = 0
-                            [, error_norm = Cubature.INDIVIDUAL]]])
+    (val,err) = hcubature(fdim::Integer, f::Function, xmin, xmax,
+                          reqRelError::Real [, reqAbsError::Real = 0
+                          [, maxEval::Integer = 0
+                          [, error_norm = Cubature.INDIVIDUAL]]])
 
 for h-adaptive integration, or `pquadrature`/`pcubature` (with the
 same arguments) for p-adaptive integration.  The return value is a

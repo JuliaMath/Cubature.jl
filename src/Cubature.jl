@@ -26,13 +26,14 @@ const LINF = int32(4)
 const SUCCESS = int32(0)
 const FAILURE = int32(1)
 
-# global var used in place of a real closure (until closures are
-# supported by cfunction).  Note that this makes cubature non-re-entrant
-integrand_func = nothing
+# type to distinguish cubature error codes from thrown exceptions
+type NoError <: Exception end # used for integrand_error when nothing thrown
 
-# global to save any exception returned by integrand_func
-type NoError <: Exception end 
-integrand_error = NoError()
+type IntegrandData
+    integrand_func::Function
+    integrand_error::Any
+    IntegrandData(f::Function) = new(f, NoError())
+end
 
 # C-callable integrand wrappers around the user's Julia integrand
 for fscalar in (false, true) # whether the integrand is a scalar
@@ -56,14 +57,12 @@ for fscalar in (false, true) # whether the integrand is a scalar
                 end
             end
 
-            func = :((integrand_func::Function))
-
             if fscalar
                 if vectorized
                     vex = :(pointer_to_array(fval_, (int(npt),)))
-                    ex = :($func($xex, $vex))
+                    ex = :(func($xex, $vex))
                 else
-                    ex = :(unsafe_assign(fval_, $func($xex)))
+                    ex = :(unsafe_assign(fval_, func($xex)))
                 end
             else
                 if vectorized
@@ -71,29 +70,29 @@ for fscalar in (false, true) # whether the integrand is a scalar
                 else
                     vex = :(pointer_to_array(fval_, (int(fdim),)))
                 end
-                ex = :($func($xex, $vex))
+                ex = :(func($xex, $vex))
             end
 
             body = quote
-                global integrand_func
-                global integrand_error
+                d = unsafe_pointer_to_objref(d_)::IntegrandData
+                func = d.integrand_func
                 try
                     $ex
                     return SUCCESS
                 catch e
-                    integrand_error = e
+                    d.integrand_error = e
                     return FAILURE
                 end
             end
 
             if vectorized
                 @eval function $f(ndim::Uint32, npt::Uint,
-                                  x_::Ptr{Float64}, _::Ptr{Void},
+                                  x_::Ptr{Float64}, d_::Ptr{Void},
                                   fdim::Uint32, fval_::Ptr{Float64})
                     $body
                 end
             else
-                @eval function $f(ndim::Uint32, x_::Ptr{Float64}, _::Ptr{Void},
+                @eval function $f(ndim::Uint32, x_::Ptr{Float64},d_::Ptr{Void},
                                   fdim::Uint32, fval_::Ptr{Float64})
                     $body
                 end
@@ -102,15 +101,20 @@ for fscalar in (false, true) # whether the integrand is a scalar
     end
 end
 
+cf(f,v) = cfunction(f, Int32, v ? (Uint32, Uint, Ptr{Float64}, Ptr{Void},
+                                   Uint32, Ptr{Float64}) :
+                                  (Uint32, Ptr{Float64}, Ptr{Void},
+                                   Uint32, Ptr{Float64}))
+
 # (xscalar, fscalar, vectorized) => function
-const integrands = [ (false,false,false) => integrand,
-                     (false,false, true) => integrand_v,
-                     (false, true,false) => sintegrand,
-                     (false, true, true) => sintegrand_v,
-                     ( true,false,false) => qintegrand,
-                     ( true,false, true) => qintegrand_v,
-                     ( true, true,false) => qsintegrand,
-                     ( true, true, true) => qsintegrand_v ]
+const integrands = [ (false,false,false) => cf(integrand,false),
+                     (false,false, true) => cf(integrand_v,true),
+                     (false, true,false) => cf(sintegrand,false),
+                     (false, true, true) => cf(sintegrand_v,true),
+                     ( true,false,false) => cf(qintegrand,false),
+                     ( true,false, true) => cf(qintegrand_v,true),
+                     ( true, true,false) => cf(qsintegrand,false),
+                     ( true, true, true) => cf(qsintegrand_v,true) ]
 
 # low-level routine, not to be called directly by user
 function cubature(xscalar::Bool, fscalar::Bool,
@@ -119,8 +123,6 @@ function cubature(xscalar::Bool, fscalar::Bool,
                   xmin_, xmax_, 
                   reqRelError::Real, reqAbsError::Real, maxEval::Integer,
                   error_norm::Integer)
-    global integrand_func
-    global integrand_error
     dim = length(xmin_)
     if xscalar && dim != 1
         throw(ArgumentError("quadrature routines are for 1d only"))
@@ -138,74 +140,57 @@ function cubature(xscalar::Bool, fscalar::Bool,
     xmax = Float64[xmax_...]
     val = Array(Float64, fdim)
     err = Array(Float64, fdim)
-    if integrand_func != nothing
-        error("Nested calls to cubature are not supported")
-        end
-    fwrap = cfunction(integrands[(xscalar,fscalar,vectorized)],
-                      Int32,
-                      vectorized ? 
-                      (Uint32, Uint, Ptr{Float64}, Ptr{Void},
-                       Uint32, Ptr{Float64}) :
-                      (Uint32, Ptr{Float64}, Ptr{Void},
-                       Uint32, Ptr{Float64}))
-    try
-        integrand_func = f
-        integrand_error = NoError()
-        # ccall's first arg needs to be a constant expression, so
-        # we have to put the if statements outside the ccalls rather
-        # than inside, unfortunately
-        if padaptive
-            if vectorized
-                ret = ccall((:pcubature_v,libcubature), Int32,
-                            (Uint32, Ptr{Void}, Ptr{Void},
-                             Uint32, Ptr{Float64}, Ptr{Float64},
-                             Uint, Float64, Float64, Int32,
-                             Ptr{Float64}, Ptr{Float64}),
-                            fdim, fwrap, C_NULL, dim, xmin, xmax, 
-                            maxEval, reqAbsError, reqRelError, error_norm,
-                            val, err)
-            else
-                ret = ccall((:pcubature,libcubature), Int32,
-                            (Uint32, Ptr{Void}, Ptr{Void},
-                             Uint32, Ptr{Float64}, Ptr{Float64},
-                             Uint, Float64, Float64, Int32,
-                             Ptr{Float64}, Ptr{Float64}),
-                            fdim, fwrap, C_NULL, dim, xmin, xmax, 
-                            maxEval, reqAbsError, reqRelError, error_norm,
-                            val, err)
-            end
+    fwrap = integrands[(xscalar,fscalar,vectorized)]
+    d = IntegrandData(f)
+    # ccall's first arg needs to be a constant expression, so
+    # we have to put the if statements outside the ccalls rather
+    # than inside, unfortunately
+    if padaptive
+        if vectorized
+            ret = ccall((:pcubature_v,libcubature), Int32,
+                        (Uint32, Ptr{Void}, Any,
+                         Uint32, Ptr{Float64}, Ptr{Float64},
+                         Uint, Float64, Float64, Int32,
+                         Ptr{Float64}, Ptr{Float64}),
+                        fdim, fwrap, d, dim, xmin, xmax, 
+                        maxEval, reqAbsError, reqRelError, error_norm,
+                        val, err)
         else
-            if vectorized
-                ret = ccall((:hcubature_v,libcubature), Int32,
-                            (Uint32, Ptr{Void}, Ptr{Void},
-                             Uint32, Ptr{Float64}, Ptr{Float64},
-                             Uint, Float64, Float64, Int32,
-                             Ptr{Float64}, Ptr{Float64}),
-                            fdim, fwrap, C_NULL, dim, xmin, xmax, 
-                            maxEval, reqAbsError, reqRelError, error_norm,
-                            val, err)
-            else
-                ret = ccall((:hcubature,libcubature), Int32,
-                            (Uint32, Ptr{Void}, Ptr{Void},
-                             Uint32, Ptr{Float64}, Ptr{Float64},
-                             Uint, Float64, Float64, Int32,
-                             Ptr{Float64}, Ptr{Float64}),
-                            fdim, fwrap, C_NULL, dim, xmin, xmax, 
-                            maxEval, reqAbsError, reqRelError, error_norm,
-                            val, err)
-            end
+            ret = ccall((:pcubature,libcubature), Int32,
+                        (Uint32, Ptr{Void}, Any,
+                         Uint32, Ptr{Float64}, Ptr{Float64},
+                         Uint, Float64, Float64, Int32,
+                         Ptr{Float64}, Ptr{Float64}),
+                        fdim, fwrap, d, dim, xmin, xmax, 
+                        maxEval, reqAbsError, reqRelError, error_norm,
+                        val, err)
         end
-        e = integrand_error
-        if ret == SUCCESS
-            return (val, err)
+    else
+        if vectorized
+            ret = ccall((:hcubature_v,libcubature), Int32,
+                        (Uint32, Ptr{Void}, Any,
+                         Uint32, Ptr{Float64}, Ptr{Float64},
+                         Uint, Float64, Float64, Int32,
+                         Ptr{Float64}, Ptr{Float64}),
+                        fdim, fwrap, d, dim, xmin, xmax, 
+                        maxEval, reqAbsError, reqRelError, error_norm,
+                        val, err)
         else
-            throw(isa(e, NoError) ? ErrorException("hcubature error $ret") : e)
+            ret = ccall((:hcubature,libcubature), Int32,
+                        (Uint32, Ptr{Void}, Any,
+                         Uint32, Ptr{Float64}, Ptr{Float64},
+                         Uint, Float64, Float64, Int32,
+                         Ptr{Float64}, Ptr{Float64}),
+                        fdim, fwrap, d, dim, xmin, xmax, 
+                        maxEval, reqAbsError, reqRelError, error_norm,
+                        val, err)
         end
-    finally
-        # clear global refs so as not to spoil garbage collection
-        # and also to let subsequent calls know that we are not nested
-        integrand_func = nothing
-        integrand_error = NoError()
+    end
+    e = d.integrand_error
+    if ret == SUCCESS
+        return (val, err)
+    else
+        throw(isa(e, NoError) ? ErrorException("hcubature error $ret") : e)
     end
 end
 
