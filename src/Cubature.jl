@@ -35,6 +35,10 @@ type IntegrandData
     IntegrandData(f::Function) = new(f, NoError())
 end
 
+# C cubature code is not interrupt-safe (would leak memory), so
+# use sigatomic_begin/end to defer ctrl-c handling until Julia code
+import Base.sigatomic_begin, Base.sigatomic_end
+
 # C-callable integrand wrappers around the user's Julia integrand
 for fscalar in (false, true) # whether the integrand is a scalar
     for vectorized in (false, true) # whether multiple x are passed at once
@@ -77,11 +81,14 @@ for fscalar in (false, true) # whether the integrand is a scalar
                 d = unsafe_pointer_to_objref(d_)::IntegrandData
                 func = d.integrand_func
                 try
+                    sigatomic_end() # re-enable ctrl-c handling
                     $ex
                     return SUCCESS
                 catch e
                     d.integrand_error = e
                     return FAILURE
+                finally
+                    sigatomic_begin() # disable ctrl-c in C code
                 end
             end
 
@@ -145,52 +152,57 @@ function cubature(xscalar::Bool, fscalar::Bool,
     # ccall's first arg needs to be a constant expression, so
     # we have to put the if statements outside the ccalls rather
     # than inside, unfortunately
-    if padaptive
-        if vectorized
-            ret = ccall((:pcubature_v,libcubature), Int32,
-                        (Uint32, Ptr{Void}, Any,
-                         Uint32, Ptr{Float64}, Ptr{Float64},
-                         Uint, Float64, Float64, Int32,
-                         Ptr{Float64}, Ptr{Float64}),
-                        fdim, fwrap, d, dim, xmin, xmax, 
-                        maxEval, reqAbsError, reqRelError, error_norm,
-                        val, err)
+    try
+        sigatomic_begin() # defer ctrl-c exceptions
+        if padaptive
+            if vectorized
+                ret = ccall((:pcubature_v,libcubature), Int32,
+                            (Uint32, Ptr{Void}, Any,
+                             Uint32, Ptr{Float64}, Ptr{Float64},
+                             Uint, Float64, Float64, Int32,
+                             Ptr{Float64}, Ptr{Float64}),
+                            fdim, fwrap, d, dim, xmin, xmax, 
+                            maxEval, reqAbsError, reqRelError, error_norm,
+                            val, err)
+            else
+                ret = ccall((:pcubature,libcubature), Int32,
+                            (Uint32, Ptr{Void}, Any,
+                             Uint32, Ptr{Float64}, Ptr{Float64},
+                             Uint, Float64, Float64, Int32,
+                             Ptr{Float64}, Ptr{Float64}),
+                            fdim, fwrap, d, dim, xmin, xmax, 
+                            maxEval, reqAbsError, reqRelError, error_norm,
+                            val, err)
+            end
         else
-            ret = ccall((:pcubature,libcubature), Int32,
-                        (Uint32, Ptr{Void}, Any,
-                         Uint32, Ptr{Float64}, Ptr{Float64},
-                         Uint, Float64, Float64, Int32,
-                         Ptr{Float64}, Ptr{Float64}),
-                        fdim, fwrap, d, dim, xmin, xmax, 
-                        maxEval, reqAbsError, reqRelError, error_norm,
-                        val, err)
+            if vectorized
+                ret = ccall((:hcubature_v,libcubature), Int32,
+                            (Uint32, Ptr{Void}, Any,
+                             Uint32, Ptr{Float64}, Ptr{Float64},
+                             Uint, Float64, Float64, Int32,
+                             Ptr{Float64}, Ptr{Float64}),
+                            fdim, fwrap, d, dim, xmin, xmax, 
+                            maxEval, reqAbsError, reqRelError, error_norm,
+                            val, err)
+            else
+                ret = ccall((:hcubature,libcubature), Int32,
+                            (Uint32, Ptr{Void}, Any,
+                             Uint32, Ptr{Float64}, Ptr{Float64},
+                             Uint, Float64, Float64, Int32,
+                             Ptr{Float64}, Ptr{Float64}),
+                            fdim, fwrap, d, dim, xmin, xmax, 
+                            maxEval, reqAbsError, reqRelError, error_norm,
+                            val, err)
+            end
         end
-    else
-        if vectorized
-            ret = ccall((:hcubature_v,libcubature), Int32,
-                        (Uint32, Ptr{Void}, Any,
-                         Uint32, Ptr{Float64}, Ptr{Float64},
-                         Uint, Float64, Float64, Int32,
-                         Ptr{Float64}, Ptr{Float64}),
-                        fdim, fwrap, d, dim, xmin, xmax, 
-                        maxEval, reqAbsError, reqRelError, error_norm,
-                        val, err)
+        if ret == SUCCESS
+            return (val, err)
         else
-            ret = ccall((:hcubature,libcubature), Int32,
-                        (Uint32, Ptr{Void}, Any,
-                         Uint32, Ptr{Float64}, Ptr{Float64},
-                         Uint, Float64, Float64, Int32,
-                         Ptr{Float64}, Ptr{Float64}),
-                        fdim, fwrap, d, dim, xmin, xmax, 
-                        maxEval, reqAbsError, reqRelError, error_norm,
-                        val, err)
+            e = d.integrand_error
+            throw(isa(e, NoError) ? ErrorException("hcubature error $ret") : e)
         end
-    end
-    e = d.integrand_error
-    if ret == SUCCESS
-        return (val, err)
-    else
-        throw(isa(e, NoError) ? ErrorException("hcubature error $ret") : e)
+    finally
+        sigatomic_end() # re-enable ctrl-c handling
     end
 end
 
