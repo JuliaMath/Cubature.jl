@@ -1,4 +1,4 @@
-require("BinDeps")
+using BinDeps
 
 # version of cubature package to use
 cubvers="1.0"
