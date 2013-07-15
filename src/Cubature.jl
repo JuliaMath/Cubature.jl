@@ -51,7 +51,7 @@ for fscalar in (false, true) # whether the integrand is a scalar
                 if vectorized
                     xex = :(pointer_to_array(x_, (int(npt),)))
                 else
-                    xex = :(unsafe_ref(x_))
+                    xex = :(unsafe_load(x_))
                 end
             else
                 if vectorized
@@ -66,7 +66,7 @@ for fscalar in (false, true) # whether the integrand is a scalar
                     vex = :(pointer_to_array(fval_, (int(npt),)))
                     ex = :(func($xex, $vex))
                 else
-                    ex = :(unsafe_assign(fval_, func($xex)))
+                    ex = :(unsafe_store!(fval_, func($xex)))
                 end
             else
                 if vectorized
@@ -213,20 +213,10 @@ for f in (:hcubature, :pcubature, :hquadrature, :pquadrature)
         padaptive = f == :pcubature || f == :pquadrature
         @eval begin
             # vector integrands
-            $g(fdim::Integer, f::Function, xmin, xmax, reqRelError::Real, reqAbsError::Real, maxEval::Integer, error_norm::Integer) = cubature($xscalar, false, $vectorized, $padaptive, fdim, f, xmin, xmax, reqRelError, reqAbsError, maxEval, error_norm)
+            $g(fdim::Integer, f::Function, xmin, xmax; reltol=1e-8, abstol=0, maxevals=0, error_norm=INDIVIDUAL) = cubature($xscalar, false, $vectorized, $padaptive, fdim, f, xmin, xmax, reltol, abstol, maxevals, error_norm)
 
-            $g(fdim::Integer, f::Function, xmin, xmax, reqRelError::Real, reqAbsError::Real, maxEval::Integer) = $g(fdim, f, xmin, xmax, reqRelError, reqAbsError, maxEval, INDIVIDUAL)
-
-            $g(fdim::Integer, f::Function, xmin, xmax, reqRelError::Real, reqAbsError::Real) = $g(fdim, f, xmin, xmax, reqRelError, reqAbsError, 0)
-
-            $g(fdim::Integer, f::Function, xmin, xmax, reqRelError::Real) = $g(fdim, f, xmin, xmax, reqRelError, 0.0)
-            
             # scalar integrands
-            $g(f::Function, xmin, xmax, reqRelError::Real, reqAbsError::Real, maxEval::Integer) = begin (val,err) = cubature($xscalar, true, $vectorized, $padaptive, 1, f, xmin, xmax, reqRelError, reqAbsError, maxEval, INDIVIDUAL); (val[1], err[1]); end
-
-            $g(f::Function, xmin, xmax, reqRelError::Real, reqAbsError::Real) = $g(f, xmin, xmax, reqRelError, reqAbsError, 0)
-
-            $g(f::Function, xmin, xmax, reqRelError::Real) = $g(f, xmin, xmax, reqRelError, 0.0)
+            $g(f::Function, xmin, xmax; reltol=1e-8, abstol=0, maxevals=0) = begin (val,err) = cubature($xscalar, true, $vectorized, $padaptive, 1, f, xmin, xmax, reltol, abstol, maxevals, INDIVIDUAL); (val[1], err[1]); end
         end
     end
 end

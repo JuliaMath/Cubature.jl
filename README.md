@@ -71,16 +71,16 @@ from the Cubature module.
 ### One-dimensional integrals of real-valued integrands
 
 The simplest case is to integrate a single real-valued integrand `f(x)`
-from `xmin` to `xmax`, in which case you can call:
+from `xmin` to `xmax`, in which case you can call (similar to 
+Julia's built-in `quadgk` routine):
 
-    (val,err) = hquadrature(f::Function, xmin::Real, xmax::Real,
-                            reqRelError::Real [, reqAbsError::Real = 0
-                            [, maxEval::Integer = 0]])
+    (val,err) = hquadrature(f::Function, xmin::Real, xmax::Real;
+                            reltol=1e-8, abstol=0, maxevals=0)
 
 for h-adaptive integration, or `pquadrature` (with the same arguments)
 for p-adaptive integration.  The return value is a tuple of `val` (the
 estimated integral) and `err` (the estimated absolute error in `val`,
-usually a conservative upper bound).  The arguments are:
+usually a conservative upper bound).  The required arguments are:
 
 * `f` is the integrand, a function `f(x::Float64)` that accepts a real
   argument (in the integration domain) and returns a real value.
@@ -90,29 +90,32 @@ usually a conservative upper bound).  The arguments are:
   compute integrals over infinite or semi-infinite domains, you can use
   a [change of variables](http://ab-initio.mit.edu/wiki/index.php/Cubature#Infinite_intervals).
 
-* `reqRelError` is the required *relative* error tolerance: the adaptive
-  integration will terminate when `err` &le; `reqRelError`*|`val`|.
+There are also the following optional keyword arguments:
 
-* The optional argument `reqAbsError` is a required *absolute* error
+* `reltol` is the required *relative* error tolerance: the adaptive
+  integration will terminate when `err` &le; `reltol`*|`val`|; the
+  default is `1e-8`.
+
+* The optional argument `abstol` is a required *absolute* error
   tolerance: the adaptive integration will terminate when `err` &le;
-  `reqAbsError`.  More precisely, the integration will terminate when
+  `abstol`.  More precisely, the integration will terminate when
   *either* the relative- or the absolute-error tolerances are met.
-  `reqAbsError` defaults to 0, which means that it is ignored, but it
+  `abstol` defaults to 0, which means that it is ignored, but it
   can be useful to specify an absoute error tolerance for integrands
   that may integrate to zero (or nearly zero) because of large
   cancellations, in which case the problem is ill-conditioned and a
   small relative error tolerance may be unachievable.
 
-* The optional argument `maxEval` specifies a (rough) maximum number
+* The optional argument `maxevals` specifies a (rough) maximum number
   of function evaluations: the integration will be terminated (and
   the current estimates returned) if this number is exceeded.  The
-  default `maxEval` is 0, in which case `maxEval` is ignored (no
+  default `maxevals` is 0, in which case `maxevals` is ignored (no
   maximum).
 
 Here is an example that integrates f(x) = x^3 from 0 to 1, printing
 the x coordinates that are evaluated:
 
-    hquadrature(x -> begin println(x); x^3; end, 0,1, 1e-8)
+    hquadrature(x -> begin println(x); x^3; end, 0,1)
 
 and returning `(0.25,2.7755575615628914e-15)`, which is the correct
 answer 0.25.
@@ -123,9 +126,8 @@ The next simplest case is to integrate a single real-valued integrand `f(x)`
 over a [multidimensional box](http://en.wikipedia.org/wiki/Hyperrectangle),
 with each coordinate `x[i]` integrated from `xmin[i]` to `xmax[i]`.
 
-    (val,err) = hcubature(f::Function, xmin, xmax, 
-                          reqRelError::Real [, reqAbsError::Real = 0
-                          [, maxEval::Integer = 0]])
+    (val,err) = hcubature(f::Function, xmin, xmax;
+                          reltol=1e-8, abstol=0, maxevals=0)
 
 for h-adaptive integration, or `pcubature` (with the same arguments)
 for p-adaptive integration.  The return value is a tuple of `val` (the
@@ -141,13 +143,13 @@ usually a conservative upper bound).  The arguments are:
   (As above, the components must be finite, but you can treat infinite
   domains via a change of variables).
 
-* `reqRelError`, `reqAbsError`, and `maxEval` specify termination criteria
-  as for `hquadrature` above.
+* The optional keyword arguments `reltol`, `abstol`, and `maxevals`
+  specify termination criteria as for `hquadrature` above.
 
 Here is the same 1d example as above, integrating f(x) = x^3 from 0 to 1
 while the x coordinates that are evaluated:
 
-    hcubature(x -> begin println(x[1]); x[1]^3; end, 0,1, 1e-8)
+    hcubature(x -> begin println(x[1]); x[1]^3; end, 0,1)
 
 which again returns the correct integral 0.25. The only difference from
 before is that the argument `x` of our integrand is now an array, so
@@ -171,14 +173,12 @@ at once for any given dimension `fdim` (the dimension of the
 *integrand*, which is independent of the dimensionality of the
 integration *domain*).   This is achieved by calling one of:
 
-    (val,err) = hquadrature(fdim::Integer, f::Function, xmin, xmax, 
-                            reqRelError::Real [, reqAbsError::Real = 0
-                            [, maxEval::Integer = 0
-                            [, error_norm = Cubature.INDIVIDUAL]]])
-    (val,err) = hcubature(fdim::Integer, f::Function, xmin, xmax,
-                          reqRelError::Real [, reqAbsError::Real = 0
-                          [, maxEval::Integer = 0
-                          [, error_norm = Cubature.INDIVIDUAL]]])
+    (val,err) = hquadrature(fdim::Integer, f::Function, xmin, xmax;
+                            reltol=1e-8, abstol=0, maxevals=0,
+                            error_norm = Cubature.INDIVIDUAL)
+    (val,err) = hcubature(fdim::Integer, f::Function, xmin, xmax;
+                          reltol=1e-8, abstol=0, maxevals=0,
+                          error_norm = Cubature.INDIVIDUAL)
 
 for h-adaptive integration, or `pquadrature`/`pcubature` (with the
 same arguments) for p-adaptive integration.  The return value is a
@@ -202,18 +202,19 @@ tuple of two vectors of length `fdim`: `val` (the estimated integrals
 * `xmin` and `xmax` specify the boundaries of the integration domain,
   as for `hquadrature` and `hcubature` of scalar integrands above.
 
-* `reqRelError`, `reqAbsError`, and `maxEval` specify termination criteria
-  as above.
+* The optional keyword arguments `reltol`, `abstol`, and `maxevals`
+  specify termination criteria as for `hquadrature` above.
 
-* `error_norm` specifies how the convergence criteria for the different
-  integrands are combined.  That is, given a vector `val` of integral
-  estimates and a vector `err` of error estimates, how do we decide
-  whether to stop?   `error_norm` should be one of the following constants:
+* The optional keyword argument `error_norm` specifies how the
+  convergence criteria for the different integrands are combined.
+  That is, given a vector `val` of integral estimates and a vector
+  `err` of error estimates, how do we decide whether to stop?
+  `error_norm` should be one of the following constants:
 
     * `Cubature.INDIVIDUAL`, the default.  This terminates the integration
-      when all of the integrals, taken individually, converges.  That is,
-      it checks `err[i]` &le; `reqRelError`*|`val[i]`| or `err[i]` &le;
-      `reqAbsError`, and only stops when one of these is true for *all* `i`.
+      when all of the integrals, taken individually, converge.  That is,
+      it checks `err[i]` &le; `reltol`*|`val[i]`| or `err[i]` &le;
+      `abstol`, and only stops when one of these is true for *all* `i`.
 
     * `Cubature.PAIRED`.  This is like `Cubature.INDIVIDUAL`, but
       applies the convergence criteria to *consecutive pairs* of
@@ -225,7 +226,7 @@ tuple of two vectors of length `fdim`: `val` (the estimated integrals
 
     * `Cubature.L1`, `Cubature.L2`, or `Cubature.LINF`.  These
       terminate the integration when |`err`| &le;
-      `reqRelError`*|`val`| or |`err`| &le; `reqAbsError`, where |...|
+      `reltol`*|`val`| or |`err`| &le; `abstol`, where |...|
       denotes a *norm* applied to the whole vector of errors or
       integrals.  In particular, the L1 norm (sum of absolute values),
       the L2 norm (the root-mean-square value), or the L-infinity norm
@@ -240,7 +241,7 @@ tuple of two vectors of length `fdim`: `val` (the estimated integrals
 Here is an example, similar to above, which integrates a vector of
 three integrands (x, x^2, x^3) from 0 to 1:
 
-    hquadrature(3, (x,v) -> v[:] = x.^[1:3], 0,1, 1e-8)
+    hquadrature(3, (x,v) -> v[:] = x.^[1:3], 0,1)
 
 returning `([0.5, 0.333333, 0.25],[5.55112e-15, 3.70074e-15,
 2.77556e-15])`, which are of course the correct integrals.
@@ -293,6 +294,9 @@ The h-adaptive integration routines are based on those described in:
 
 * A. C. Genz and A. A. Malik, "An adaptive algorithm for numeric integration over an N-dimensional rectangular region,"  *J. Comput. Appl. Math.*, vol. 6 (no. 4), 295-302 (1980).
 * J. Berntsen, T. O. Espelid, and A. Genz, "An adaptive algorithm for the approximate calculation of multiple integrals," *ACM Trans. Math. Soft.*, vol. 17 (no. 4), 437-451 (1991).
+
+which we implemented in a C library, the [Cubature
+Package](http://ab-initio.mit.edu/cubature), that is called from Julia.
 
 Note that we do ''not'' use any of the original DCUHRE code by Genz,
 which is not under a free/open-source license.)  Our code is based in
