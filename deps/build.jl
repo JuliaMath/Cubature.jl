@@ -13,7 +13,7 @@ if !isfile(tagfile) || readchomp(tagfile) != cubvers
         if !isfile("cubature-$cubvers.tar.gz")
             run(download_cmd("http://ab-initio.mit.edu/cubature/cubature-$cubvers.tgz", "cubature-$cubvers.tar.gz"))
         end
-        run(unpack_cmd("cubature-$cubvers.tar.gz", "."))
+        run(unpack_cmd("cubature-$cubvers.tar.gz", ".", ".gz", ".tar"))
         cd("cubature-$cubvers") do
             println("Compiling hcubature.c...")
             run(`gcc -fPIC -O3 -c hcubature.c`)
