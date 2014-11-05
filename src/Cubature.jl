@@ -1,4 +1,5 @@
 module Cubature
+using Compat
 
 # Julia wrappers around adaptive multidimensional integration routines
 # from the Cubature Package, at:
@@ -114,14 +115,14 @@ cf(f,v) = cfunction(f, Int32, v ? (Uint32, Uint, Ptr{Float64}, Ptr{Void},
                                    Uint32, Ptr{Float64}))
 
 # (xscalar, fscalar, vectorized) => function
-const integrands = [ (false,false,false) => cf(integrand,false),
-                     (false,false, true) => cf(integrand_v,true),
-                     (false, true,false) => cf(sintegrand,false),
-                     (false, true, true) => cf(sintegrand_v,true),
-                     ( true,false,false) => cf(qintegrand,false),
-                     ( true,false, true) => cf(qintegrand_v,true),
-                     ( true, true,false) => cf(qsintegrand,false),
-                     ( true, true, true) => cf(qsintegrand_v,true) ]
+const integrands = @compat Dict((false,false,false) => cf(integrand,false),
+                                (false,false, true) => cf(integrand_v,true),
+                                (false, true,false) => cf(sintegrand,false),
+                                (false, true, true) => cf(sintegrand_v,true),
+                                ( true,false,false) => cf(qintegrand,false),
+                                ( true,false, true) => cf(qintegrand_v,true),
+                                ( true, true,false) => cf(qsintegrand,false),
+                                ( true, true, true) => cf(qsintegrand_v,true))
 
 # low-level routine, not to be called directly by user
 function cubature(xscalar::Bool, fscalar::Bool,
