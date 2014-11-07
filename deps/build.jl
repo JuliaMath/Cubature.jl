@@ -1,7 +1,7 @@
 using BinDeps
 
 # version of cubature package to use
-cubvers="1.0"
+cubvers="1.0.2"
 
 tagfile = "installed_vers"
 if !isfile(tagfile) || readchomp(tagfile) != cubvers
