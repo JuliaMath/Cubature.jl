@@ -15,7 +15,7 @@ using Compat
 export hcubature, pcubature, hcubature_v, pcubature_v, 
        hquadrature, pquadrature, hquadrature_v, pquadrature_v
 
-const libcubature = Pkg.dir("Cubature", "deps", "libcubature")
+const libcubature = joinpath(dirname(@__FILE__), "..", "deps", "libcubature")
 
 # constants from cubature.h
 const INDIVIDUAL = int32(0)
