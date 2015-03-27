@@ -10,7 +10,7 @@ using Cubature
 quad_tst1(x) = prod(cos(x))    
 for dim = 0:3
     xmin = zeros(dim)
-    xmax = Float64[1:dim]
+    xmax = 1:dim
     ans = prod(sin(xmax))
     @test_approx_eq_eps hcubature(quad_tst1, xmin,xmax, abstol=1e-8)[1] ans 1e-8
     @test_approx_eq_eps pcubature(quad_tst1, xmin,xmax, abstol=1e-8)[1] ans 1e-8
@@ -22,8 +22,8 @@ end
 for fdim = 1:3
 for dim = 0:3
     xmin = zeros(dim)
-    xmax = Float64[1:dim]
-    ans = prod(sin(xmax)) * [1:fdim]
+    xmax = 1:dim
+    ans = prod(sin(xmax)) * (1:fdim)
     if dim == 1
         @test_approx_eq_eps hquadrature(fdim, quad_tst2, xmin,xmax, abstol=1e-8)[1] ans 1e-8
         @test_approx_eq_eps pquadrature(fdim, quad_tst2, xmin,xmax, abstol=1e-8)[1] ans 1e-8
@@ -44,7 +44,7 @@ quad_tst1v(x,v) = for i = 1:length(v)
 end
 for dim = 0:3
     xmin = zeros(dim)
-    xmax = Float64[1:dim]
+    xmax = 1:dim
     ans = prod(sin(xmax))
     @test_approx_eq_eps hcubature_v(quad_tst1v, xmin,xmax, abstol=1e-8)[1] ans 1e-8
     @test_approx_eq_eps pcubature_v(quad_tst1v, xmin,xmax, abstol=1e-8)[1] ans 1e-8
@@ -63,8 +63,8 @@ end
 for fdim = 1:3
 for dim = 0:3
     xmin = zeros(dim)
-    xmax = Float64[1:dim]
-    ans = prod(sin(xmax)) * [1:fdim]
+    xmax = 1:dim
+    ans = prod(sin(xmax)) * (1:fdim)
     if dim == 1
         @test_approx_eq_eps hquadrature_v(fdim, quad_tst2v, xmin,xmax, abstol=1e-8)[1] ans 1e-8
         @test_approx_eq_eps pquadrature_v(fdim, quad_tst2v, xmin,xmax, abstol=1e-8)[1] ans 1e-8
