@@ -118,7 +118,14 @@ the x coordinates that are evaluated:
     hquadrature(x -> begin println(x); x^3; end, 0,1)
 
 and returning `(0.25,2.7755575615628914e-15)`, which is the correct
-answer 0.25.
+answer 0.25.  If we instead integrate from -1 to 1, the function may
+never exit: the exact integral is zero, and it is nearly impossible to
+satisfy the default `reltol` bound in floating-point arithmetic.  In
+that case, you have to specify an `abstol` as explained above:
+
+    hquadrature(x -> begin println(x); x^3; end, -1,1, abstol=1e-8)
+
+in which case it quickly returns.
 
 ### Multi-dimensional integrals of real-valued integrands
 
@@ -153,7 +160,9 @@ while the x coordinates that are evaluated:
 
 which again returns the correct integral 0.25. The only difference from
 before is that the argument `x` of our integrand is now an array, so
-we must use `x[1]` to access its value.
+we must use `x[1]` to access its value.  If we have multiple coordinates, we use `x[1]`, `x[2]`, etcetera, as in this example integrating f(x,y) = x^3 y in the unit box [0,1]x[0,1] (the exact integral is 0.125):
+
+    hcubature(x -> begin println(x[1],",",x[2]); x[1]^3*x[2]; end, [0,0],[1,1])
 
 ### Integrals of vector-valued integrands
 
