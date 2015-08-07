@@ -20,14 +20,14 @@ export hcubature, pcubature, hcubature_v, pcubature_v,
 const libcubature = joinpath(dirname(@__FILE__), "..", "deps", "libcubature")
 
 # constants from cubature.h
-const INDIVIDUAL = @compat Int32(0)
-const PAIRED = @compat Int32(1)
-const L2 = @compat Int32(2)
-const L1 = @compat Int32(3)
-const LINF = @compat Int32(4)
+const INDIVIDUAL = convert(Int32, 0)
+const PAIRED = convert(Int32, 1)
+const L2 = convert(Int32, 2)
+const L1 = convert(Int32, 3)
+const LINF = convert(Int32, 4)
 
-const SUCCESS = @compat Int32(0)
-const FAILURE = @compat Int32(1)
+const SUCCESS = convert(Int32, 0)
+const FAILURE = convert(Int32, 1)
 
 # type to distinguish cubature error codes from thrown exceptions
 type NoError <: Exception end # used for integrand_error when nothing thrown
@@ -52,30 +52,30 @@ for fscalar in (false, true) # whether the integrand is a scalar
             if xscalar
                 f = symbol(string("q",f))
                 if vectorized
-                    xex = :(pointer_to_array(x_, (@compat(Int(npt)),)))
+                    xex = :(pointer_to_array(x_, (convert(Int, npt),)))
                 else
                     xex = :(unsafe_load(x_))
                 end
             else
                 if vectorized
-                    xex = :(pointer_to_array(x_, (@compat(Int(ndim)),@compat(Int(npt)))))
+                    xex = :(pointer_to_array(x_, (convert(Int, ndim),convert(Int, npt))))
                 else
-                    xex = :(pointer_to_array(x_, (@compat(Int(ndim)),)))
+                    xex = :(pointer_to_array(x_, (convert(Int, ndim),)))
                 end
             end
 
             if fscalar
                 if vectorized
-                    vex = :(pointer_to_array(fval_, (@compat(Int(npt)),)))
+                    vex = :(pointer_to_array(fval_, (convert(Int, npt),)))
                     ex = :(func($xex, $vex))
                 else
                     ex = :(unsafe_store!(fval_, func($xex)))
                 end
             else
                 if vectorized
-                    vex = :(pointer_to_array(fval_, (@compat(Int(fdim)),@compat(Int(npt)))))
+                    vex = :(pointer_to_array(fval_, (convert(Int, fdim),convert(Int, npt))))
                 else
-                    vex = :(pointer_to_array(fval_, (@compat(Int(fdim)),)))
+                    vex = :(pointer_to_array(fval_, (convert(Int, fdim),)))
                 end
                 ex = :(func($xex, $vex))
             end
