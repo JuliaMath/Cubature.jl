@@ -1,3 +1,5 @@
+VERSION >= v"0.4.0-dev+6521" && __precompile__()
+
 module Cubature
 using Compat
 
@@ -18,14 +20,14 @@ export hcubature, pcubature, hcubature_v, pcubature_v,
 const libcubature = joinpath(dirname(@__FILE__), "..", "deps", "libcubature")
 
 # constants from cubature.h
-const INDIVIDUAL = int32(0)
-const PAIRED = int32(1)
-const L2 = int32(2)
-const L1 = int32(3)
-const LINF = int32(4)
+const INDIVIDUAL = @compat Int32(0)
+const PAIRED = @compat Int32(1)
+const L2 = @compat Int32(2)
+const L1 = @compat Int32(3)
+const LINF = @compat Int32(4)
 
-const SUCCESS = int32(0)
-const FAILURE = int32(1)
+const SUCCESS = @compat Int32(0)
+const FAILURE = @compat Int32(1)
 
 # type to distinguish cubature error codes from thrown exceptions
 type NoError <: Exception end # used for integrand_error when nothing thrown
@@ -50,30 +52,30 @@ for fscalar in (false, true) # whether the integrand is a scalar
             if xscalar
                 f = symbol(string("q",f))
                 if vectorized
-                    xex = :(pointer_to_array(x_, (int(npt),)))
+                    xex = :(pointer_to_array(x_, (@compat(Int(npt)),)))
                 else
                     xex = :(unsafe_load(x_))
                 end
             else
                 if vectorized
-                    xex = :(pointer_to_array(x_, (int(ndim),int(npt))))
+                    xex = :(pointer_to_array(x_, (@compat(Int(ndim)),@compat(Int(npt)))))
                 else
-                    xex = :(pointer_to_array(x_, (int(ndim),)))
+                    xex = :(pointer_to_array(x_, (@compat(Int(ndim)),)))
                 end
             end
 
             if fscalar
                 if vectorized
-                    vex = :(pointer_to_array(fval_, (int(npt),)))
+                    vex = :(pointer_to_array(fval_, (@compat(Int(npt)),)))
                     ex = :(func($xex, $vex))
                 else
                     ex = :(unsafe_store!(fval_, func($xex)))
                 end
             else
                 if vectorized
-                    vex = :(pointer_to_array(fval_, (int(fdim),int(npt))))
+                    vex = :(pointer_to_array(fval_, (@compat(Int(fdim)),@compat(Int(npt)))))
                 else
-                    vex = :(pointer_to_array(fval_, (int(fdim),)))
+                    vex = :(pointer_to_array(fval_, (@compat(Int(fdim)),)))
                 end
                 ex = :(func($xex, $vex))
             end
@@ -115,14 +117,19 @@ cf(f,v) = cfunction(f, Int32, v ? (Uint32, Uint, Ptr{Float64}, Ptr{Void},
                                    Uint32, Ptr{Float64}))
 
 # (xscalar, fscalar, vectorized) => function
-const integrands = @compat Dict((false,false,false) => cf(integrand,false),
-                                (false,false, true) => cf(integrand_v,true),
-                                (false, true,false) => cf(sintegrand,false),
-                                (false, true, true) => cf(sintegrand_v,true),
-                                ( true,false,false) => cf(qintegrand,false),
-                                ( true,false, true) => cf(qintegrand_v,true),
-                                ( true, true,false) => cf(qsintegrand,false),
-                                ( true, true, true) => cf(qsintegrand_v,true))
+
+const integrands = Dict{Tuple{Bool,Bool,Bool},Ptr{Void}}()
+function __init__()
+    # cfunction must be called at runtime
+    integrands[false,false,false] = cf(integrand,false)
+    integrands[false,false, true] = cf(integrand_v,true)
+    integrands[false, true,false] = cf(sintegrand,false)
+    integrands[false, true, true] = cf(sintegrand_v,true)
+    integrands[ true,false,false] = cf(qintegrand,false)
+    integrands[ true,false, true] = cf(qintegrand_v,true)
+    integrands[ true, true,false] = cf(qsintegrand,false)
+    integrands[ true, true, true] = cf(qsintegrand_v,true)
+end
 
 # low-level routine, not to be called directly by user
 function cubature(xscalar::Bool, fscalar::Bool,
