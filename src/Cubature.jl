@@ -118,7 +118,7 @@ cf(f,v) = cfunction(f, Int32, v ? (Uint32, Uint, Ptr{Float64}, Ptr{Void},
 
 # (xscalar, fscalar, vectorized) => function
 
-const integrands = Dict{Tuple{Bool,Bool,Bool},Ptr{Void}}()
+const integrands = @compat Dict{Tuple{Bool,Bool,Bool},Ptr{Void}}()
 function __init__()
     # cfunction must be called at runtime
     integrands[false,false,false] = cf(integrand,false)
