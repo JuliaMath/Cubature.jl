@@ -96,14 +96,14 @@ for fscalar in (false, true) # whether the integrand is a scalar
             end
 
             if vectorized
-                @eval function $f(ndim::Uint32, npt::Uint,
+                @eval function $f(ndim::UInt32, npt::UInt,
                                   x_::Ptr{Float64}, d_::Ptr{Void},
-                                  fdim::Uint32, fval_::Ptr{Float64})
+                                  fdim::UInt32, fval_::Ptr{Float64})
                     $body
                 end
             else
-                @eval function $f(ndim::Uint32, x_::Ptr{Float64},d_::Ptr{Void},
-                                  fdim::Uint32, fval_::Ptr{Float64})
+                @eval function $f(ndim::UInt32, x_::Ptr{Float64},d_::Ptr{Void},
+                                  fdim::UInt32, fval_::Ptr{Float64})
                     $body
                 end
             end
@@ -111,10 +111,10 @@ for fscalar in (false, true) # whether the integrand is a scalar
     end
 end
 
-cf(f,v) = cfunction(f, Int32, v ? (Uint32, Uint, Ptr{Float64}, Ptr{Void},
-                                   Uint32, Ptr{Float64}) :
-                                  (Uint32, Ptr{Float64}, Ptr{Void},
-                                   Uint32, Ptr{Float64}))
+cf(f,v) = cfunction(f, Int32, v ? (UInt32, UInt, Ptr{Float64}, Ptr{Void},
+                                   UInt32, Ptr{Float64}) :
+                                  (UInt32, Ptr{Float64}, Ptr{Void},
+                                   UInt32, Ptr{Float64}))
 
 # (xscalar, fscalar, vectorized) => function
 
@@ -165,18 +165,18 @@ function cubature(xscalar::Bool, fscalar::Bool,
         if padaptive
             if vectorized
                 ret = ccall((:pcubature_v,libcubature), Int32,
-                            (Uint32, Ptr{Void}, Any,
-                             Uint32, Ptr{Float64}, Ptr{Float64},
-                             Uint, Float64, Float64, Int32,
+                            (UInt32, Ptr{Void}, Any,
+                             UInt32, Ptr{Float64}, Ptr{Float64},
+                             UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
                             fdim, fwrap, d, dim, xmin, xmax, 
                             maxEval, reqAbsError, reqRelError, error_norm,
                             val, err)
             else
                 ret = ccall((:pcubature,libcubature), Int32,
-                            (Uint32, Ptr{Void}, Any,
-                             Uint32, Ptr{Float64}, Ptr{Float64},
-                             Uint, Float64, Float64, Int32,
+                            (UInt32, Ptr{Void}, Any,
+                             UInt32, Ptr{Float64}, Ptr{Float64},
+                             UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
                             fdim, fwrap, d, dim, xmin, xmax, 
                             maxEval, reqAbsError, reqRelError, error_norm,
@@ -185,18 +185,18 @@ function cubature(xscalar::Bool, fscalar::Bool,
         else
             if vectorized
                 ret = ccall((:hcubature_v,libcubature), Int32,
-                            (Uint32, Ptr{Void}, Any,
-                             Uint32, Ptr{Float64}, Ptr{Float64},
-                             Uint, Float64, Float64, Int32,
+                            (UInt32, Ptr{Void}, Any,
+                             UInt32, Ptr{Float64}, Ptr{Float64},
+                             UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
                             fdim, fwrap, d, dim, xmin, xmax, 
                             maxEval, reqAbsError, reqRelError, error_norm,
                             val, err)
             else
                 ret = ccall((:hcubature,libcubature), Int32,
-                            (Uint32, Ptr{Void}, Any,
-                             Uint32, Ptr{Float64}, Ptr{Float64},
-                             Uint, Float64, Float64, Int32,
+                            (UInt32, Ptr{Void}, Any,
+                             UInt32, Ptr{Float64}, Ptr{Float64},
+                             UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
                             fdim, fwrap, d, dim, xmin, xmax, 
                             maxEval, reqAbsError, reqRelError, error_norm,
