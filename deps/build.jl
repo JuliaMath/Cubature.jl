@@ -1,5 +1,5 @@
 using BinDeps
-
+using Compat
 # version of cubature package to use
 cubvers="1.0.2"
 
@@ -23,5 +23,5 @@ if !isfile(tagfile) || readchomp(tagfile) != cubvers
             run(`gcc -shared -o ../libcubature.so hcubature.o pcubature.o`)
         end
     end
-    run(`echo $cubvers` |> tagfile)
+    run(pipeline(`echo $cubvers`, tagfile))
 end
