@@ -1,5 +1,5 @@
 using BinDeps
-
+using Compat
 # version of cubature package to use
 cubvers="1.0.2"
 
