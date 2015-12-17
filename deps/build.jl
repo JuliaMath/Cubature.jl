@@ -4,7 +4,7 @@ using Compat
 cubvers="1.0.2"
 
 tagfile = "installed_vers"
-if !isfile(tagfile) || readchomp(tagfile) != cubvers
+if !isfile(tagfile) || readchomp(tagfile) != "$cubvers $WORD_SIZE"
     info("Installing Cubature $cubvers library...")
     if OS_NAME == :Windows
         run(download_cmd("http://ab-initio.mit.edu/cubature/libcubature$WORD_SIZE-$cubvers.dll", "libcubature.dll"))
@@ -25,7 +25,7 @@ if !isfile(tagfile) || readchomp(tagfile) != cubvers
         end
     end
     open(tagfile, "w") do f
-        println(f, cubvers)
+        println(f, "$cubvers $WORD_SIZE")
     end
 else
     info("Cubature $cubvers is already installed.")
