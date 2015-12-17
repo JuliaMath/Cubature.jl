@@ -14,7 +14,7 @@ using Compat
 # simple interfaces to the more basic functionality (1d and >1d
 # integrals of scalar functions).
 
-export hcubature, pcubature, hcubature_v, pcubature_v, 
+export hcubature, pcubature, hcubature_v, pcubature_v,
        hquadrature, pquadrature, hquadrature_v, pquadrature_v
 
 const libcubature = joinpath(dirname(@__FILE__), "..", "deps", "libcubature")
@@ -96,14 +96,14 @@ for fscalar in (false, true) # whether the integrand is a scalar
             end
 
             if vectorized
-                @eval function $f(ndim::Uint32, npt::Uint,
+                @eval function $f(ndim::UInt32, npt::UInt,
                                   x_::Ptr{Float64}, d_::Ptr{Void},
-                                  fdim::Uint32, fval_::Ptr{Float64})
+                                  fdim::UInt32, fval_::Ptr{Float64})
                     $body
                 end
             else
-                @eval function $f(ndim::Uint32, x_::Ptr{Float64},d_::Ptr{Void},
-                                  fdim::Uint32, fval_::Ptr{Float64})
+                @eval function $f(ndim::UInt32, x_::Ptr{Float64},d_::Ptr{Void},
+                                  fdim::UInt32, fval_::Ptr{Float64})
                     $body
                 end
             end
@@ -111,10 +111,10 @@ for fscalar in (false, true) # whether the integrand is a scalar
     end
 end
 
-cf(f,v) = cfunction(f, Int32, v ? (Uint32, Uint, Ptr{Float64}, Ptr{Void},
-                                   Uint32, Ptr{Float64}) :
-                                  (Uint32, Ptr{Float64}, Ptr{Void},
-                                   Uint32, Ptr{Float64}))
+cf(f,v) = cfunction(f, Int32, v ? (UInt32, UInt, Ptr{Float64}, Ptr{Void},
+                                   UInt32, Ptr{Float64}) :
+                                  (UInt32, Ptr{Float64}, Ptr{Void},
+                                   UInt32, Ptr{Float64}))
 
 # (xscalar, fscalar, vectorized) => function
 
@@ -134,8 +134,8 @@ end
 # low-level routine, not to be called directly by user
 function cubature(xscalar::Bool, fscalar::Bool,
                   vectorized::Bool, padaptive::Bool,
-                  fdim::Integer, f::Function, 
-                  xmin_, xmax_, 
+                  fdim::Integer, f::Function,
+                  xmin_, xmax_,
                   reqRelError::Real, reqAbsError::Real, maxEval::Integer,
                   error_norm::Integer)
     dim = length(xmin_)
@@ -165,40 +165,40 @@ function cubature(xscalar::Bool, fscalar::Bool,
         if padaptive
             if vectorized
                 ret = ccall((:pcubature_v,libcubature), Int32,
-                            (Uint32, Ptr{Void}, Any,
-                             Uint32, Ptr{Float64}, Ptr{Float64},
-                             Uint, Float64, Float64, Int32,
+                            (UInt32, Ptr{Void}, Any,
+                             UInt32, Ptr{Float64}, Ptr{Float64},
+                             UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
-                            fdim, fwrap, d, dim, xmin, xmax, 
+                            fdim, fwrap, d, dim, xmin, xmax,
                             maxEval, reqAbsError, reqRelError, error_norm,
                             val, err)
             else
                 ret = ccall((:pcubature,libcubature), Int32,
-                            (Uint32, Ptr{Void}, Any,
-                             Uint32, Ptr{Float64}, Ptr{Float64},
-                             Uint, Float64, Float64, Int32,
+                            (UInt32, Ptr{Void}, Any,
+                             UInt32, Ptr{Float64}, Ptr{Float64},
+                             UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
-                            fdim, fwrap, d, dim, xmin, xmax, 
+                            fdim, fwrap, d, dim, xmin, xmax,
                             maxEval, reqAbsError, reqRelError, error_norm,
                             val, err)
             end
         else
             if vectorized
                 ret = ccall((:hcubature_v,libcubature), Int32,
-                            (Uint32, Ptr{Void}, Any,
-                             Uint32, Ptr{Float64}, Ptr{Float64},
-                             Uint, Float64, Float64, Int32,
+                            (UInt32, Ptr{Void}, Any,
+                             UInt32, Ptr{Float64}, Ptr{Float64},
+                             UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
-                            fdim, fwrap, d, dim, xmin, xmax, 
+                            fdim, fwrap, d, dim, xmin, xmax,
                             maxEval, reqAbsError, reqRelError, error_norm,
                             val, err)
             else
                 ret = ccall((:hcubature,libcubature), Int32,
-                            (Uint32, Ptr{Void}, Any,
-                             Uint32, Ptr{Float64}, Ptr{Float64},
-                             Uint, Float64, Float64, Int32,
+                            (UInt32, Ptr{Void}, Any,
+                             UInt32, Ptr{Float64}, Ptr{Float64},
+                             UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
-                            fdim, fwrap, d, dim, xmin, xmax, 
+                            fdim, fwrap, d, dim, xmin, xmax,
                             maxEval, reqAbsError, reqRelError, error_norm,
                             val, err)
             end
