@@ -5,6 +5,7 @@ cubvers="1.0.2"
 
 tagfile = "installed_vers"
 if !isfile(tagfile) || readchomp(tagfile) != cubvers
+    info("Installing Cubature $cubvers library...")
     if OS_NAME == :Windows
         run(download_cmd("http://ab-initio.mit.edu/cubature/libcubature$WORD_SIZE-$cubvers.dll", "libcubature.dll"))
     elseif OS_NAME == :Darwin
@@ -23,5 +24,9 @@ if !isfile(tagfile) || readchomp(tagfile) != cubvers
             run(`gcc -shared -o ../libcubature.so hcubature.o pcubature.o`)
         end
     end
-    run(`echo $cubvers` |> tagfile)
+    open(tagfile, "w") do f
+        println(f, cubvers)
+    end
+else
+    info("Cubature $cubvers is already installed.")
 end
