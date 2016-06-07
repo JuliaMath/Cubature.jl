@@ -46,11 +46,11 @@ import Base.sigatomic_begin, Base.sigatomic_end
 for fscalar in (false, true) # whether the integrand is a scalar
     for vectorized in (false, true) # whether multiple x are passed at once
         for xscalar in (false, true) # whether x is a scalar
-            f = symbol(string(fscalar ? :sintegrand : :integrand,
+            f = Symbol(string(fscalar ? :sintegrand : :integrand,
                               vectorized ? "_v" : ""))
 
             if xscalar
-                f = symbol(string("q",f))
+                f = Symbol(string("q",f))
                 if vectorized
                     xex = :(pointer_to_array(x_, (convert(Int, npt),)))
                 else
@@ -216,7 +216,7 @@ end
 
 for f in (:hcubature, :pcubature, :hquadrature, :pquadrature)
     for vectorized in (true, false)
-        g = symbol(string(f, vectorized ? "_v" : ""))
+        g = Symbol(string(f, vectorized ? "_v" : ""))
         xscalar = f == :pquadrature || f == :hquadrature
         padaptive = f == :pcubature || f == :pquadrature
         @eval begin
