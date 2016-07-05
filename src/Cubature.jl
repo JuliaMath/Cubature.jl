@@ -46,36 +46,36 @@ import Base.sigatomic_begin, Base.sigatomic_end
 for fscalar in (false, true) # whether the integrand is a scalar
     for vectorized in (false, true) # whether multiple x are passed at once
         for xscalar in (false, true) # whether x is a scalar
-            f = symbol(string(fscalar ? :sintegrand : :integrand,
+            f = Symbol(string(fscalar ? :sintegrand : :integrand,
                               vectorized ? "_v" : ""))
 
             if xscalar
-                f = symbol(string("q",f))
+                f = Symbol(string("q",f))
                 if vectorized
-                    xex = :(pointer_to_array(x_, (convert(Int, npt),)))
+                    xex = :(unsafe_wrap(Array, x_, (convert(Int, npt),)))
                 else
                     xex = :(unsafe_load(x_))
                 end
             else
                 if vectorized
-                    xex = :(pointer_to_array(x_, (convert(Int, ndim),convert(Int, npt))))
+                    xex = :(unsafe_wrap(Array, x_, (convert(Int, ndim),convert(Int, npt))))
                 else
-                    xex = :(pointer_to_array(x_, (convert(Int, ndim),)))
+                    xex = :(unsafe_wrap(Array, x_, (convert(Int, ndim),)))
                 end
             end
 
             if fscalar
                 if vectorized
-                    vex = :(pointer_to_array(fval_, (convert(Int, npt),)))
+                    vex = :(unsafe_wrap(Array, fval_, (convert(Int, npt),)))
                     ex = :(func($xex, $vex))
                 else
                     ex = :(unsafe_store!(fval_, func($xex)))
                 end
             else
                 if vectorized
-                    vex = :(pointer_to_array(fval_, (convert(Int, fdim),convert(Int, npt))))
+                    vex = :(unsafe_wrap(Array, fval_, (convert(Int, fdim),convert(Int, npt))))
                 else
-                    vex = :(pointer_to_array(fval_, (convert(Int, fdim),)))
+                    vex = :(unsafe_wrap(Array, fval_, (convert(Int, fdim),)))
                 end
                 ex = :(func($xex, $vex))
             end
@@ -84,14 +84,13 @@ for fscalar in (false, true) # whether the integrand is a scalar
                 d = unsafe_pointer_to_objref(d_)::IntegrandData
                 func = d.integrand_func
                 try
-                    sigatomic_end() # re-enable ctrl-c handling
-                    $ex
+                    reenable_sigint() do
+                        $ex
+                    end
                     return SUCCESS
                 catch e
                     d.integrand_error = e
                     return FAILURE
-                finally
-                    sigatomic_begin() # disable ctrl-c in C code
                 end
             end
 
@@ -118,7 +117,7 @@ cf(f,v) = cfunction(f, Int32, v ? (UInt32, UInt, Ptr{Float64}, Ptr{Void},
 
 # (xscalar, fscalar, vectorized) => function
 
-const integrands = @compat Dict{Tuple{Bool,Bool,Bool},Ptr{Void}}()
+const integrands = Dict{Tuple{Bool,Bool,Bool},Ptr{Void}}()
 function __init__()
     # cfunction must be called at runtime
     integrands[false,false,false] = cf(integrand,false)
@@ -160,8 +159,7 @@ function cubature(xscalar::Bool, fscalar::Bool,
     # ccall's first arg needs to be a constant expression, so
     # we have to put the if statements outside the ccalls rather
     # than inside, unfortunately
-    try
-        sigatomic_begin() # defer ctrl-c exceptions
+    disable_sigint() do
         if padaptive
             if vectorized
                 ret = ccall((:pcubature_v,libcubature), Int32,
@@ -209,14 +207,12 @@ function cubature(xscalar::Bool, fscalar::Bool,
             e = d.integrand_error
             throw(isa(e, NoError) ? ErrorException("hcubature error $ret") : e)
         end
-    finally
-        sigatomic_end() # re-enable ctrl-c handling
     end
 end
 
 for f in (:hcubature, :pcubature, :hquadrature, :pquadrature)
     for vectorized in (true, false)
-        g = symbol(string(f, vectorized ? "_v" : ""))
+        g = Symbol(string(f, vectorized ? "_v" : ""))
         xscalar = f == :pquadrature || f == :hquadrature
         padaptive = f == :pcubature || f == :pquadrature
         @eval begin
