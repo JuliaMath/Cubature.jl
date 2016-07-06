@@ -2,6 +2,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/bu4lciej14ct2rb0?svg=true)](https://ci.appveyor.com/project/StevenGJohnson/cubature-jl)
 [![Cubature](http://pkg.julialang.org/badges/Cubature_0.3.svg)](http://pkg.julialang.org/?pkg=Cubature&ver=0.3)
 [![Cubature](http://pkg.julialang.org/badges/Cubature_0.4.svg)](http://pkg.julialang.org/?pkg=Cubature&ver=0.4)
+[![Cubature](http://pkg.julialang.org/badges/Cubature_0.5.svg)](http://pkg.julialang.org/?pkg=Cubature&ver=0.5)
 
 # The Cubature module for Julia
 
