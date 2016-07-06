@@ -8,9 +8,9 @@ cubvers="1.0.2"
 tagfile = "installed_vers"
 if !isfile(tagfile) || readchomp(tagfile) != "$cubvers $WORD_SIZE"
     info("Installing Cubature $cubvers library...")
-    if OS_NAME == :Windows
+    if is_windows()
         run(download_cmd("http://ab-initio.mit.edu/cubature/libcubature$WORD_SIZE-$cubvers.dll", "libcubature.dll"))
-    elseif OS_NAME == :Darwin
+    elseif is_apple()
         run(download_cmd("http://ab-initio.mit.edu/cubature/libcubature$WORD_SIZE-$cubvers.dylib", "libcubature.dylib"))
     else
         if !isfile("cubature-$cubvers.tar.gz")
