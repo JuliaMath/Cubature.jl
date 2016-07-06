@@ -1,5 +1,7 @@
 using BinDeps
 using Compat
+import Base.Sys.WORD_SIZE
+
 # version of cubature package to use
 cubvers="1.0.2"
 
