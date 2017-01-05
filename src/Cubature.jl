@@ -32,11 +32,12 @@ const FAILURE = convert(Int32, 1)
 # type to distinguish cubature error codes from thrown exceptions
 type NoError <: Exception end # used for integrand_error when nothing thrown
 
-type IntegrandData
-    integrand_func::Function
+type IntegrandData{F}
+    integrand_func::F
     integrand_error::Any
-    IntegrandData(f::Function) = new(f, NoError())
+    IntegrandData(f) = new(f, NoError())
 end
+IntegrandData{F}(f::F) = IntegrandData{F}(f)
 
 # C cubature code is not interrupt-safe (would leak memory), so
 # use sigatomic_begin/end to defer ctrl-c handling until Julia code
@@ -81,7 +82,6 @@ for fscalar in (false, true) # whether the integrand is a scalar
             end
 
             body = quote
-                d = unsafe_pointer_to_objref(d_)::IntegrandData
                 func = d.integrand_func
                 try
                     reenable_sigint() do
@@ -96,12 +96,12 @@ for fscalar in (false, true) # whether the integrand is a scalar
 
             if vectorized
                 @eval function $f(ndim::UInt32, npt::UInt,
-                                  x_::Ptr{Float64}, d_::Ptr{Void},
+                                  x_::Ptr{Float64}, d,
                                   fdim::UInt32, fval_::Ptr{Float64})
                     $body
                 end
             else
-                @eval function $f(ndim::UInt32, x_::Ptr{Float64},d_::Ptr{Void},
+                @eval function $f(ndim::UInt32, x_::Ptr{Float64}, d,
                                   fdim::UInt32, fval_::Ptr{Float64})
                     $body
                 end
@@ -110,33 +110,42 @@ for fscalar in (false, true) # whether the integrand is a scalar
     end
 end
 
-cf(f,v) = cfunction(f, Int32, v ? (UInt32, UInt, Ptr{Float64}, Ptr{Void},
-                                   UInt32, Ptr{Float64}) :
-                                  (UInt32, Ptr{Float64}, Ptr{Void},
-                                   UInt32, Ptr{Float64}))
-
-# (xscalar, fscalar, vectorized) => function
-
-const integrands = Dict{Tuple{Bool,Bool,Bool},Ptr{Void}}()
-function __init__()
-    # cfunction must be called at runtime
-    integrands[false,false,false] = cf(integrand,false)
-    integrands[false,false, true] = cf(integrand_v,true)
-    integrands[false, true,false] = cf(sintegrand,false)
-    integrands[false, true, true] = cf(sintegrand_v,true)
-    integrands[ true,false,false] = cf(qintegrand,false)
-    integrands[ true,false, true] = cf(qintegrand_v,true)
-    integrands[ true, true,false] = cf(qsintegrand,false)
-    integrands[ true, true, true] = cf(qsintegrand_v,true)
+@inline function cf{D}(f, d::D, v)
+    if v
+        cfunction(f, Int32,
+                  (UInt32, UInt, Ptr{Float64}, Ref{D}, UInt32, Ptr{Float64}))
+    else
+        cfunction(f, Int32,
+                  (UInt32, Ptr{Float64}, Ref{D}, UInt32, Ptr{Float64}))
+    end
+end
+function integrands(d, xscalar, fscalar, vectorized)
+    if xscalar
+        if fscalar
+            return (vectorized ? cf(qsintegrand_v, d, true) :
+                    cf(qsintegrand, d, false))
+        else
+            return (vectorized ? cf(qintegrand_v, d, true) :
+                    cf(qintegrand, d, false))
+        end
+    else
+        if fscalar
+            return (vectorized ? cf(sintegrand_v, d, true) :
+                    cf(sintegrand, d, false))
+        else
+            return (vectorized ? cf(integrand_v, d, true) :
+                    cf(integrand, d, false))
+        end
+    end
 end
 
 # low-level routine, not to be called directly by user
-function cubature(xscalar::Bool, fscalar::Bool,
-                  vectorized::Bool, padaptive::Bool,
-                  fdim::Integer, f::Function,
-                  xmin_, xmax_,
-                  reqRelError::Real, reqAbsError::Real, maxEval::Integer,
-                  error_norm::Integer)
+function cubature{F}(xscalar::Bool, fscalar::Bool,
+                     vectorized::Bool, padaptive::Bool,
+                     fdim::Integer, f::F, # Force specialization on F
+                     xmin_, xmax_,
+                     reqRelError::Real, reqAbsError::Real, maxEval::Integer,
+                     error_norm::Integer)
     dim = length(xmin_)
     if xscalar && dim != 1
         throw(ArgumentError("quadrature routines are for 1d only"))
@@ -154,8 +163,8 @@ function cubature(xscalar::Bool, fscalar::Bool,
     xmax = Float64[xmax_...]
     val = Array(Float64, fdim)
     err = Array(Float64, fdim)
-    fwrap = integrands[(xscalar,fscalar,vectorized)]
     d = IntegrandData(f)
+    fwrap = integrands(d, xscalar, fscalar, vectorized)
     # ccall's first arg needs to be a constant expression, so
     # we have to put the if statements outside the ccalls rather
     # than inside, unfortunately
