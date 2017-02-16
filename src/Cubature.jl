@@ -32,10 +32,10 @@ const FAILURE = convert(Int32, 1)
 # type to distinguish cubature error codes from thrown exceptions
 type NoError <: Exception end # used for integrand_error when nothing thrown
 
-type IntegrandData{F}
+@compat type IntegrandData{F}
     integrand_func::F
     integrand_error::Any
-    IntegrandData(f) = new(f, NoError())
+    (::Type{IntegrandData{F}}){F}(f) = new{F}(f, NoError())
 end
 IntegrandData{F}(f::F) = IntegrandData{F}(f)
 
@@ -161,8 +161,8 @@ function cubature{F}(xscalar::Bool, fscalar::Bool,
     end
     xmin = Float64[xmin_...]
     xmax = Float64[xmax_...]
-    val = Array(Float64, fdim)
-    err = Array(Float64, fdim)
+    val = Vector{Float64}(fdim)
+    err = Vector{Float64}(fdim)
     d = IntegrandData(f)
     fwrap = integrands(d, xscalar, fscalar, vectorized)
     # ccall's first arg needs to be a constant expression, so

@@ -5,16 +5,16 @@ using Compat
 # The downside of having multiple interfaces to simplify 1d, scalar
 # integrands, etcetera, is that we have lot of interfaces to test:
 
-@test_approx_eq_eps hquadrature(cos, 0,1, abstol=1e-8)[1] sin(1) 1e-8
-@test_approx_eq_eps pquadrature(cos, 0,1, abstol=1e-8)[1] sin(1) 1e-8
+@test isapprox(hquadrature(cos, 0,1, abstol=1e-8)[1], sin(1), atol=1e-8)
+@test isapprox(pquadrature(cos, 0,1, abstol=1e-8)[1], sin(1), atol=1e-8)
 
 quad_tst1(x) = @compat prod(cos.(x))
 for dim = 0:3
     xmin = zeros(dim)
     xmax = 1:dim
     ans = @compat prod(sin.(xmax))
-    @test_approx_eq_eps hcubature(quad_tst1, xmin,xmax, abstol=1e-8)[1] ans 1e-8
-    @test_approx_eq_eps pcubature(quad_tst1, xmin,xmax, abstol=1e-8)[1] ans 1e-8
+    @test isapprox(hcubature(quad_tst1, xmin,xmax, abstol=1e-8)[1], ans, atol=1e-8)
+    @test isapprox(pcubature(quad_tst1, xmin,xmax, abstol=1e-8)[1], ans, atol=1e-8)
 end
 
 quad_tst2(x, v) = for j = 1:length(v)
@@ -26,19 +26,19 @@ for dim = 0:3
     xmax = 1:dim
     ans = @compat prod(sin.(xmax)) * (1:fdim)
     if dim == 1
-        @test_approx_eq_eps hquadrature(fdim, quad_tst2, xmin,xmax, abstol=1e-8)[1] ans 1e-8
-        @test_approx_eq_eps pquadrature(fdim, quad_tst2, xmin,xmax, abstol=1e-8)[1] ans 1e-8
+        @test isapprox(hquadrature(fdim, quad_tst2, xmin,xmax, abstol=1e-8)[1], ans, atol=1e-8)
+        @test isapprox(pquadrature(fdim, quad_tst2, xmin,xmax, abstol=1e-8)[1], ans, atol=1e-8)
     end
-    @test_approx_eq_eps hcubature(fdim, quad_tst2, xmin,xmax, abstol=1e-8)[1] ans 1e-8
-    @test_approx_eq_eps pcubature(fdim, quad_tst2, xmin,xmax, abstol=1e-8)[1] ans 1e-8
+    @test isapprox(hcubature(fdim, quad_tst2, xmin,xmax, abstol=1e-8)[1], ans, atol=1e-8)
+    @test isapprox(pcubature(fdim, quad_tst2, xmin,xmax, abstol=1e-8)[1], ans, atol=1e-8)
 end
 end
 
 quad_tst0v(x,v) = for i = 1:length(x)
     v[i] = cos(x[i])
 end
-@test_approx_eq_eps hquadrature_v(quad_tst0v, 0,1, abstol=1e-8)[1] sin(1) 1e-8
-@test_approx_eq_eps pquadrature_v(quad_tst0v, 0,1, abstol=1e-8)[1] sin(1) 1e-8
+@test isapprox(hquadrature_v(quad_tst0v, 0,1, abstol=1e-8)[1], sin(1), atol=1e-8)
+@test isapprox(pquadrature_v(quad_tst0v, 0,1, abstol=1e-8)[1], sin(1), atol=1e-8)
 
 quad_tst1v(x,v) = for i = 1:length(v)
     v[i] = @compat prod(cos.(x[:,i]))
@@ -47,8 +47,8 @@ for dim = 0:3
     xmin = zeros(dim)
     xmax = 1:dim
     ans = @compat prod(sin.(xmax))
-    @test_approx_eq_eps hcubature_v(quad_tst1v, xmin,xmax, abstol=1e-8)[1] ans 1e-8
-    @test_approx_eq_eps pcubature_v(quad_tst1v, xmin,xmax, abstol=1e-8)[1] ans 1e-8
+    @test isapprox(hcubature_v(quad_tst1v, xmin,xmax, abstol=1e-8)[1], ans, atol=1e-8)
+    @test isapprox(pcubature_v(quad_tst1v, xmin,xmax, abstol=1e-8)[1], ans, atol=1e-8)
 end
 
 quad_tst2v(x::Array{Float64,2}, v) = for i = 1:size(v,2)
@@ -67,16 +67,16 @@ for dim = 0:3
     xmax = 1:dim
     ans = @compat prod(sin.(xmax)) * (1:fdim)
     if dim == 1
-        @test_approx_eq_eps hquadrature_v(fdim, quad_tst2v, xmin,xmax, abstol=1e-8)[1] ans 1e-8
-        @test_approx_eq_eps pquadrature_v(fdim, quad_tst2v, xmin,xmax, abstol=1e-8)[1] ans 1e-8
+        @test isapprox(hquadrature_v(fdim, quad_tst2v, xmin,xmax, abstol=1e-8)[1], ans, atol=1e-8)
+        @test isapprox(pquadrature_v(fdim, quad_tst2v, xmin,xmax, abstol=1e-8)[1], ans, atol=1e-8)
     end
-    @test_approx_eq_eps hcubature_v(fdim, quad_tst2v, xmin,xmax, abstol=1e-8)[1] ans 1e-8
-    @test_approx_eq_eps pcubature_v(fdim, quad_tst2v, xmin,xmax, abstol=1e-8)[1] ans 1e-8
+    @test isapprox(hcubature_v(fdim, quad_tst2v, xmin,xmax, abstol=1e-8)[1], ans, atol=1e-8)
+    @test isapprox(pcubature_v(fdim, quad_tst2v, xmin,xmax, abstol=1e-8)[1], ans, atol=1e-8)
 end
 end
 
-# Check that nested calls work (although this is a suboptimal way to 
+# Check that nested calls work (although this is a suboptimal way to
 # compute multidimensional integrals):
 
-@test_approx_eq_eps hquadrature(x -> hquadrature(cos, 0,2, abstol=1e-8)[1]*cos(x),
-                                0,1, abstol=1e-8)[1] sin(1)*sin(2) 1e-8
+@test isapprox(hquadrature(x -> hquadrature(cos, 0,2, abstol=1e-8)[1]*cos(x),
+                           0,1, abstol=1e-8)[1], sin(1)*sin(2), atol=1e-8)
