@@ -22,8 +22,9 @@ the C routines.
 
 The latest development version of Cubature is avalable from
 <https://github.com/stevengj/Cubature.jl>.  If you want to switch to
-this after installing the package, `cd ~/.julia/Cubature` and `git pull
-git://github.com/stevengj/Cubature.jl master`.
+this after installing the package, do `Pkg.checkout("Cubature")`.
+A pure-Julia implementation of similar functionality can
+be found in the [HCubature package](https://github.com/stevengj/HCubature.jl).
 
 ## h-adaptive versus p-adaptive integration
 
