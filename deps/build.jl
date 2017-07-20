@@ -13,7 +13,7 @@ if !isfile(tagfile) || readchomp(tagfile) != "$cubvers $WORD_SIZE"
     info("Installing Cubature $cubvers library...")
     if is_windows()
         run(download_cmd("$url/libcubature$WORD_SIZE-$cubvers.dll", "libcubature.dll"))
-    elseif is_apple() && false
+    elseif is_apple()
         run(download_cmd("$url/libcubature$WORD_SIZE-$cubvers.dylib", "libcubature.dylib"))
     else
         if !isfile("cubature-$cubvers.tar.gz")
