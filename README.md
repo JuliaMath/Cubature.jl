@@ -1,8 +1,8 @@
 [![Build Status](https://travis-ci.org/stevengj/Cubature.jl.svg?branch=master)](https://travis-ci.org/stevengj/Cubature.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/bu4lciej14ct2rb0?svg=true)](https://ci.appveyor.com/project/StevenGJohnson/cubature-jl)
-[![Cubature](http://pkg.julialang.org/badges/Cubature_0.3.svg)](http://pkg.julialang.org/?pkg=Cubature&ver=0.3)
 [![Cubature](http://pkg.julialang.org/badges/Cubature_0.4.svg)](http://pkg.julialang.org/?pkg=Cubature&ver=0.4)
 [![Cubature](http://pkg.julialang.org/badges/Cubature_0.5.svg)](http://pkg.julialang.org/?pkg=Cubature&ver=0.5)
+[![Cubature](http://pkg.julialang.org/badges/Cubature_0.6.svg)](http://pkg.julialang.org/?pkg=Cubature&ver=0.6)
 
 # The Cubature module for Julia
 
@@ -64,7 +64,7 @@ h-adaptive algorithm only evaluates the integrand at the *interior* of
 the domain (never at the edges), whereas our p-adaptive algorithm also
 evaluates the integrand at the edges.
 
-(The names "h-adaptive" and "p-adaptive" refer to the fact that the 
+(The names "h-adaptive" and "p-adaptive" refer to the fact that the
 size of the subdomains is often denoted *h* while the degree of the
 polynomial fitting is often called *p*.)
 
@@ -77,7 +77,7 @@ from the Cubature module.
 ### One-dimensional integrals of real-valued integrands
 
 The simplest case is to integrate a single real-valued integrand `f(x)`
-from `xmin` to `xmax`, in which case you can call (similar to 
+from `xmin` to `xmax`, in which case you can call (similar to
 Julia's built-in `quadgk` routine):
 
     (val,err) = hquadrature(f::Function, xmin::Real, xmax::Real;
