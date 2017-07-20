@@ -10,7 +10,7 @@ This module provides one- and multi-dimensional adaptive integration
 routines for the [Julia language](http://julialang.org/), including
 support for vector-valued integrands and facilitation of parallel
 evaluation of integrands, based on the [Cubature
-Package](http://ab-initio.mit.edu/cubature) by Steven G. Johnson.
+Package](https://github.com/stevengj/cubature) by Steven G. Johnson.
 
 ## Installation
 
@@ -95,7 +95,7 @@ usually a conservative upper bound).  The required arguments are:
 * `xmin` and `xmax` are the boundaries of the integration domain.  (That is,
   `f` is integrated from `xmin` to `xmax`.)  They must be *finite*; to
   compute integrals over infinite or semi-infinite domains, you can use
-  a [change of variables](http://ab-initio.mit.edu/wiki/index.php/Cubature#Infinite_intervals).
+  a [change of variables](https://github.com/stevengj/cubature/blob/master/README.md#infinite-intervals).
 
 There are also the following optional keyword arguments:
 
@@ -312,7 +312,7 @@ The h-adaptive integration routines are based on those described in:
 * J. Berntsen, T. O. Espelid, and A. Genz, "An adaptive algorithm for the approximate calculation of multiple integrals," *ACM Trans. Math. Soft.*, vol. 17 (no. 4), 437-451 (1991).
 
 which we implemented in a C library, the [Cubature
-Package](http://ab-initio.mit.edu/cubature), that is called from Julia.
+Package](https://github.com/stevengj/cubature), that is called from Julia.
 
 Note that we do ''not'' use any of the original DCUHRE code by Genz,
 which is not under a free/open-source license.)  Our code is based in

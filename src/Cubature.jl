@@ -1,18 +1,17 @@
 VERSION >= v"0.4.0-dev+6521" && __precompile__()
 
+"""
+Julia wrappers around adaptive multidimensional integration routines
+from the [C Cubature Package](https://github.com/stevengj/cubature).
+
+See the [README file](https://github.com/stevengj/Cubature.jl/blob/master/README.md) for documentation.   Note that we define
+several variants of the functions in order to expose the full
+functionality of the Cubature Package while still providing
+simple interfaces to the more basic functionality (1d and >1d
+integrals of scalar functions).
+"""
 module Cubature
 using Compat
-
-# Julia wrappers around adaptive multidimensional integration routines
-# from the Cubature Package, at:
-#              http://ab-initio.mit.edu/cubature
-# by Steven G. Johnson
-#
-# See the README file for documentation.   Note that we define
-# several variants of the functions in order to expose the full
-# functionality of the Cubature Package while still providing
-# simple interfaces to the more basic functionality (1d and >1d
-# integrals of scalar functions).
 
 export hcubature, pcubature, hcubature_v, pcubature_v,
        hquadrature, pquadrature, hquadrature_v, pquadrature_v
