@@ -1,4 +1,4 @@
-VERSION >= v"0.4.0-dev+6521" && __precompile__()
+ __precompile__()
 
 """
 Julia wrappers around adaptive multidimensional integration routines
@@ -11,10 +11,10 @@ simple interfaces to the more basic functionality (1d and >1d
 integrals of scalar functions).
 """
 module Cubature
-using Compat
+
 
 export hcubature, pcubature, hcubature_v, pcubature_v,
-       hquadrature, pquadrature, hquadrature_v, pquadrature_v
+    hquadrature, pquadrature, hquadrature_v, pquadrature_v
 
 const libcubature = joinpath(dirname(@__FILE__), "..", "deps", "libcubature")
 
@@ -31,7 +31,7 @@ const FAILURE = convert(Int32, 1)
 # type to distinguish cubature error codes from thrown exceptions
 struct NoError <: Exception end # used for integrand_error when nothing thrown
 
-@compat mutable struct IntegrandData{F}
+struct IntegrandData{F}
     integrand_func::F
     integrand_error::Any
     (::Type{IntegrandData{F}})(f) where F = new{F}(f, NoError())
