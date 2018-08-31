@@ -1,5 +1,3 @@
- __precompile__()
-
 """
 Julia wrappers around adaptive multidimensional integration routines
 from the [C Cubature Package](https://github.com/stevengj/cubature).
@@ -171,7 +169,7 @@ function cubature(xscalar::Bool, fscalar::Bool,
         if padaptive
             if vectorized
                 ret = ccall((:pcubature_v,libcubature), Int32,
-                            (UInt32, Ptr{Nothing}, Any,
+                            (UInt32, Ptr{Cvoid}, Any,
                              UInt32, Ptr{Float64}, Ptr{Float64},
                              UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
@@ -180,7 +178,7 @@ function cubature(xscalar::Bool, fscalar::Bool,
                             val, err)
             else
                 ret = ccall((:pcubature,libcubature), Int32,
-                            (UInt32, Ptr{Nothing}, Any,
+                            (UInt32, Ptr{Cvoid}, Any,
                              UInt32, Ptr{Float64}, Ptr{Float64},
                              UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
@@ -191,7 +189,7 @@ function cubature(xscalar::Bool, fscalar::Bool,
         else
             if vectorized
                 ret = ccall((:hcubature_v,libcubature), Int32,
-                            (UInt32, Ptr{Nothing}, Any,
+                            (UInt32, Ptr{Cvoid}, Any,
                              UInt32, Ptr{Float64}, Ptr{Float64},
                              UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
@@ -200,7 +198,7 @@ function cubature(xscalar::Bool, fscalar::Bool,
                             val, err)
             else
                 ret = ccall((:hcubature,libcubature), Int32,
-                            (UInt32, Ptr{Nothing}, Any,
+                            (UInt32, Ptr{Cvoid}, Any,
                              UInt32, Ptr{Float64}, Ptr{Float64},
                              UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
