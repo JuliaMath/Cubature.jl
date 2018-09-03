@@ -10,7 +10,7 @@ url="https://github.com/stevengj/cubature/releases/download/v$cubvers"
 
 tagfile = "installed_vers"
 if !isfile(tagfile) || readchomp(tagfile) != "$cubvers $WORD_SIZE"
-    info("Installing Cubature $cubvers library...")
+    @info "Installing Cubature $cubvers library..."
     if is_windows()
         run(download_cmd("$url/libcubature$WORD_SIZE-$cubvers.dll", "libcubature.dll"))
     elseif is_apple()
@@ -33,5 +33,5 @@ if !isfile(tagfile) || readchomp(tagfile) != "$cubvers $WORD_SIZE"
         println(f, "$cubvers $WORD_SIZE")
     end
 else
-    info("Cubature $cubvers is already installed.")
+    @info "Cubature $cubvers is already installed."
 end
