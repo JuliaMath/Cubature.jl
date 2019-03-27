@@ -1,8 +1,6 @@
 [![Build Status](https://travis-ci.org/stevengj/Cubature.jl.svg?branch=master)](https://travis-ci.org/stevengj/Cubature.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/bu4lciej14ct2rb0?svg=true)](https://ci.appveyor.com/project/StevenGJohnson/cubature-jl)
-[![Cubature](http://pkg.julialang.org/badges/Cubature_0.4.svg)](http://pkg.julialang.org/?pkg=Cubature&ver=0.4)
-[![Cubature](http://pkg.julialang.org/badges/Cubature_0.5.svg)](http://pkg.julialang.org/?pkg=Cubature&ver=0.5)
-[![Cubature](http://pkg.julialang.org/badges/Cubature_0.6.svg)](http://pkg.julialang.org/?pkg=Cubature&ver=0.6)
+
 
 # The Cubature module for Julia
 

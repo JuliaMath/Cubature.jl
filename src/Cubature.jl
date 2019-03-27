@@ -1,5 +1,3 @@
-VERSION >= v"0.4.0-dev+6521" && __precompile__()
-
 """
 Julia wrappers around adaptive multidimensional integration routines
 from the [C Cubature Package](https://github.com/stevengj/cubature).
@@ -11,10 +9,10 @@ simple interfaces to the more basic functionality (1d and >1d
 integrals of scalar functions).
 """
 module Cubature
-using Compat
+
 
 export hcubature, pcubature, hcubature_v, pcubature_v,
-       hquadrature, pquadrature, hquadrature_v, pquadrature_v
+    hquadrature, pquadrature, hquadrature_v, pquadrature_v
 
 const libcubature = joinpath(dirname(@__FILE__), "..", "deps", "libcubature")
 
@@ -29,14 +27,14 @@ const SUCCESS = convert(Int32, 0)
 const FAILURE = convert(Int32, 1)
 
 # type to distinguish cubature error codes from thrown exceptions
-type NoError <: Exception end # used for integrand_error when nothing thrown
+struct NoError <: Exception end # used for integrand_error when nothing thrown
 
-@compat type IntegrandData{F}
+struct IntegrandData{F}
     integrand_func::F
     integrand_error::Any
-    (::Type{IntegrandData{F}}){F}(f) = new{F}(f, NoError())
+    (::Type{IntegrandData{F}})(f) where F = new{F}(f, NoError())
 end
-IntegrandData{F}(f::F) = IntegrandData{F}(f)
+IntegrandData(f::F) where F = IntegrandData{F}(f)
 
 # C cubature code is not interrupt-safe (would leak memory), so
 # use sigatomic_begin/end to defer ctrl-c handling until Julia code
@@ -109,13 +107,13 @@ for fscalar in (false, true) # whether the integrand is a scalar
     end
 end
 
-@inline function cf{D}(f, d::D, v)
+@inline function cf(f, d::D, v) where D
     if v
-        cfunction(f, Int32,
-                  (UInt32, UInt, Ptr{Float64}, Ref{D}, UInt32, Ptr{Float64}))
+        @cfunction($f, Int32,
+                   (UInt32, UInt, Ptr{Float64}, Ref{D}, UInt32, Ptr{Float64}))
     else
-        cfunction(f, Int32,
-                  (UInt32, Ptr{Float64}, Ref{D}, UInt32, Ptr{Float64}))
+        @cfunction($f, Int32,
+                   (UInt32, Ptr{Float64}, Ref{D}, UInt32, Ptr{Float64}))
     end
 end
 function integrands(d, xscalar, fscalar, vectorized)
@@ -139,12 +137,12 @@ function integrands(d, xscalar, fscalar, vectorized)
 end
 
 # low-level routine, not to be called directly by user
-function cubature{F}(xscalar::Bool, fscalar::Bool,
-                     vectorized::Bool, padaptive::Bool,
-                     fdim::Integer, f::F, # Force specialization on F
-                     xmin_, xmax_,
-                     reqRelError::Real, reqAbsError::Real, maxEval::Integer,
-                     error_norm::Integer)
+function cubature(xscalar::Bool, fscalar::Bool,
+                  vectorized::Bool, padaptive::Bool,
+                  fdim::Integer, f::F, # Force specialization on F
+                  xmin_, xmax_,
+                  reqRelError::Real, reqAbsError::Real, maxEval::Integer,
+                  error_norm::Integer) where F
     dim = length(xmin_)
     if xscalar && dim != 1
         throw(ArgumentError("quadrature routines are for 1d only"))
@@ -160,8 +158,8 @@ function cubature{F}(xscalar::Bool, fscalar::Bool,
     end
     xmin = Float64[xmin_...]
     xmax = Float64[xmax_...]
-    val = Vector{Float64}(fdim)
-    err = Vector{Float64}(fdim)
+    val = Vector{Float64}(undef, fdim)
+    err = Vector{Float64}(undef, fdim)
     d = IntegrandData(f)
     fwrap = integrands(d, xscalar, fscalar, vectorized)
     # ccall's first arg needs to be a constant expression, so
@@ -171,7 +169,7 @@ function cubature{F}(xscalar::Bool, fscalar::Bool,
         if padaptive
             if vectorized
                 ret = ccall((:pcubature_v,libcubature), Int32,
-                            (UInt32, Ptr{Void}, Any,
+                            (UInt32, Ptr{Cvoid}, Any,
                              UInt32, Ptr{Float64}, Ptr{Float64},
                              UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
@@ -180,7 +178,7 @@ function cubature{F}(xscalar::Bool, fscalar::Bool,
                             val, err)
             else
                 ret = ccall((:pcubature,libcubature), Int32,
-                            (UInt32, Ptr{Void}, Any,
+                            (UInt32, Ptr{Cvoid}, Any,
                              UInt32, Ptr{Float64}, Ptr{Float64},
                              UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
@@ -191,7 +189,7 @@ function cubature{F}(xscalar::Bool, fscalar::Bool,
         else
             if vectorized
                 ret = ccall((:hcubature_v,libcubature), Int32,
-                            (UInt32, Ptr{Void}, Any,
+                            (UInt32, Ptr{Cvoid}, Any,
                              UInt32, Ptr{Float64}, Ptr{Float64},
                              UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
@@ -200,7 +198,7 @@ function cubature{F}(xscalar::Bool, fscalar::Bool,
                             val, err)
             else
                 ret = ccall((:hcubature,libcubature), Int32,
-                            (UInt32, Ptr{Void}, Any,
+                            (UInt32, Ptr{Cvoid}, Any,
                              UInt32, Ptr{Float64}, Ptr{Float64},
                              UInt, Float64, Float64, Int32,
                              Ptr{Float64}, Ptr{Float64}),
