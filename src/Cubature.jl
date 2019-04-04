@@ -32,7 +32,7 @@ struct NoError <: Exception end # used for integrand_error when nothing thrown
 struct IntegrandData{F}
     integrand_func::F
     integrand_error::Any
-    (::Type{IntegrandData{F}})(f) where F = new{F}(f, NoError())
+    IntegrandData{F}(f) where F = new{F}(f, NoError())
 end
 IntegrandData(f::F) where F = IntegrandData{F}(f)
 
