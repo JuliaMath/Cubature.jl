@@ -1,3 +1,4 @@
 deps/installed_vers
 deps/libcubature.*
 deps/cubature-*
+deps/build.log
