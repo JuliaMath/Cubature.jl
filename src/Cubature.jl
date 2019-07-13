@@ -11,7 +11,7 @@ integrals of scalar functions).
 module Cubature
 
 export hcubature, pcubature, hcubature_v, pcubature_v,
-       hquadrature, pquadrature, hquadrature_v, pquadrature_v
+    hquadrature, pquadrature, hquadrature_v, pquadrature_v
 
 # Load cubature libraries from our deps.jl
 const depsjl_path = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
@@ -114,15 +114,6 @@ for fscalar in (false, true) # whether the integrand is a scalar
     end
 end
 
-@inline function cf(f, d::D, v) where {D}
-    if v
-        cfunction(f, Int32,
-                  (UInt32, UInt, Ptr{Float64}, Ref{D}, UInt32, Ptr{Float64}))
-    else
-        cfunction(f, Int32,
-                  (UInt32, Ptr{Float64}, Ref{D}, UInt32, Ptr{Float64}))
-    end
-end
 function integrands(d::D, xscalar, fscalar, vectorized) where {D}
     if xscalar
         if fscalar
