@@ -10,20 +10,6 @@ support for vector-valued integrands and facilitation of parallel
 evaluation of integrands, based on the [Cubature
 Package](https://github.com/stevengj/cubature) by Steven G. Johnson.
 
-## Installation
-
-Within Julia, just use the package manager to run
-`Pkg.add("Cubature")` to install the files.  On Unix, this will also
-download and compile the C cubature routines (you must have `gcc`); on
-MacOS and Windows, it will download a pre-compiled shared library of
-the C routines.
-
-The latest development version of Cubature is avalable from
-<https://github.com/stevengj/Cubature.jl>.  If you want to switch to
-this after installing the package, do `Pkg.checkout("Cubature")`.
-A pure-Julia implementation of similar functionality can
-be found in the [HCubature package](https://github.com/stevengj/HCubature.jl).
-
 ## h-adaptive versus p-adaptive integration
 
 Adaptive integration works by evaluating the integrand at more and
