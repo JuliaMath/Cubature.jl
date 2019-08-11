@@ -37,7 +37,7 @@ const FAILURE = Int32(1)
 # type to distinguish cubature error codes from thrown exceptions
 struct NoError <: Exception end # used for integrand_error when nothing thrown
 
-struct IntegrandData{F}
+mutable struct IntegrandData{F}
     integrand_func::F
     integrand_error::Any
     IntegrandData(f::F) where{F} = new{F}(f, NoError())
