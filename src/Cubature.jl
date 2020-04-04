@@ -10,19 +10,10 @@ integrals of scalar functions).
 """
 module Cubature
 
+using Cubature_jll
+
 export hcubature, pcubature, hcubature_v, pcubature_v,
     hquadrature, pquadrature, hquadrature_v, pquadrature_v
-
-# Load cubature libraries from our deps.jl
-const depsjl_path = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
-if !isfile(depsjl_path)
-    error("Cubature not installed properly, run Pkg.build(\"Cubature\"), restart Julia, and try again")
-end
-include(depsjl_path)
-
-function __init__()
-    check_deps()
-end
 
 # constants from cubature.h
 const INDIVIDUAL = Int32(0)

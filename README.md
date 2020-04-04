@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/stevengj/Cubature.jl.svg?branch=master)](https://travis-ci.org/stevengj/Cubature.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/bu4lciej14ct2rb0?svg=true)](https://ci.appveyor.com/project/StevenGJohnson/cubature-jl)
+[![Build status](https://ci.appveyor.com/api/projects/status/0gsydibwwx59ruu7?svg=true)](https://ci.appveyor.com/project/StevenGJohnson/cubature-jl-ux9xb)
 
 
 # The Cubature module for Julia
@@ -9,6 +9,10 @@ routines for the [Julia language](http://julialang.org/), including
 support for vector-valued integrands and facilitation of parallel
 evaluation of integrands, based on the [Cubature
 Package](https://github.com/stevengj/cubature) by Steven G. Johnson.
+
+See also the [HCubature package] for a pure-Julia implementation of
+h-adaptive cubature using the same algorithm (which is therefore much
+more flexible in the types that it can integrate).
 
 ## h-adaptive versus p-adaptive integration
 
