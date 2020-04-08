@@ -1,6 +1,6 @@
 name = "Cubature"
 uuid = "667455a9-e2ce-5579-9412-b964f529a492"
-version = "1.5.0"
+version = "1.5.1"
 
 [deps]
 Cubature_jll = "7bc98958-0e37-5d67-a6ac-a3a19030071a"
