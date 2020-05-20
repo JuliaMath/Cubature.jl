@@ -10,7 +10,8 @@ support for vector-valued integrands and facilitation of parallel
 evaluation of integrands, based on the [Cubature
 Package](https://github.com/stevengj/cubature) by Steven G. Johnson.
 
-See also the [HCubature package] for a pure-Julia implementation of
+See also the [HCubature package](https://github.com/JuliaMath/HCubature.jl)
+for a pure-Julia implementation of
 h-adaptive cubature using the same algorithm (which is therefore much
 more flexible in the types that it can integrate).
 
