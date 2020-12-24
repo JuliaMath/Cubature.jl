@@ -1,7 +1,3 @@
-[![Build Status](https://travis-ci.org/JuliaMath/Cubature.jl.svg?branch=master)](https://travis-ci.org/JuliaMath/Cubature.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/0gsydibwwx59ruu7?svg=true)](https://ci.appveyor.com/project/StevenGJohnson/cubature-jl-ux9xb)
-
-
 # The Cubature module for Julia
 
 This module provides one- and multi-dimensional adaptive integration
